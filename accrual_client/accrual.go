@@ -17,7 +17,7 @@ type Order struct {
 //
 type Good struct {
 	Description string
-	Price       int
+	Price       uint
 }
 
 func (a *Accrual) RegisterOrder(o Order) (err error) {

@@ -1,4 +1,4 @@
-package db
+package storage
 
 type StorageDBparamPostgres struct {
 	DriverDB string

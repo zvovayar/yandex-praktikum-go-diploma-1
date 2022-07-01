@@ -1,4 +1,4 @@
-package db
+package storage
 
 type StorageDBparam interface {
 	GetDriverDB() (err error)
