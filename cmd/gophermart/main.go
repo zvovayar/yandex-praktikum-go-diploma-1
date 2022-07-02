@@ -10,6 +10,17 @@ func main() {
 	// run main gorutines
 	//
 
-	config.LoggerCLS.Info("CLS server started")
 	config.ConfigCLS.LoadConfig()
+	defer config.LoggerCLS.Sync()
+	config.LoggerCLS.Info("CLS server start")
+
+	//
+	// TODO: run main gorutines
+	//
+	config.LoggerCLS.Info("CLS server started")
+
+	//
+	// TODO: run http server
+	//
+
 }

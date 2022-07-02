@@ -31,6 +31,23 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.DataBaseURI = ""
 	ConfigCLS.AccrualSystemAddress = "localhost:8080"
 
+	var debuglogger string
+
+	// load flags
+	cflags := new(Config)
+	flag.StringVar(&cflags.RunAddress, "a", "", "address to listen on")
+	flag.StringVar(&cflags.DataBaseURI, "d", "", "database URI")
+	flag.StringVar(&cflags.AccrualSystemAddress, "r", "", "accrual system address")
+	flag.StringVar(&debuglogger, "v", "-", "switch on debug logger (+)")
+	flag.Parse()
+
+	if debuglogger == "+" {
+		LoggerCLS, err = zap.NewDevelopment()
+		if err != nil {
+			log.Panic("can't create zap logger")
+		}
+	}
+
 	// load environment variables
 	err = env.Parse(c)
 	if err != nil {
@@ -40,14 +57,6 @@ func (c *Config) LoadConfig() (err error) {
 
 	LoggerCLS.Debug("loaded environment variables:")
 	LoggerCLS.Sugar().Debug(*c)
-
-	// load flags
-	cflags := new(Config)
-	flag.StringVar(&cflags.RunAddress, "a", "", "address to listen on")
-	flag.StringVar(&cflags.DataBaseURI, "d", "", "database URI")
-	flag.StringVar(&cflags.AccrualSystemAddress, "r", "", "accrual system address")
-
-	flag.Parse()
 
 	LoggerCLS.Debug("loaded flags:")
 	LoggerCLS.Sugar().Debug(*cflags)
@@ -78,8 +87,8 @@ func init() {
 
 	var err error
 
-	LoggerCLS, err = zap.NewDevelopment()
-	// LoggerCLS, err = zap.NewProduction()
+	// LoggerCLS, err = zap.NewDevelopment()
+	LoggerCLS, err = zap.NewProduction()
 
 	if err != nil {
 		log.Panic("can't create zap logger")
