@@ -1,6 +1,6 @@
 package sessions
 
-import "github.com/zvovayar/yandex-praktikum-go-diploma-1/storage"
+import "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
 
 type CurrentSessions struct {
 	DB storage.StorageDBparam

@@ -1,8 +1,8 @@
 package business_logic
 
 import (
-	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/http_server/sessions"
-	"github.com/zvovayar/yandex-praktikum-go-diploma-1/storage"
+	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/http_server/sessions"
+	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
 )
 
 type BusinessSession struct {
