@@ -42,9 +42,10 @@ func (c *Config) LoadConfig() (err error) {
 	flag.Parse()
 
 	if debuglogger == "+" {
+		LoggerCLS.Sync()
 		LoggerCLS, err = zap.NewDevelopment()
 		if err != nil {
-			log.Panic("can't create zap logger")
+			log.Panic("can't create zap developmetn logger")
 		}
 	}
 
@@ -87,10 +88,9 @@ func init() {
 
 	var err error
 
-	// LoggerCLS, err = zap.NewDevelopment()
 	LoggerCLS, err = zap.NewProduction()
 
 	if err != nil {
-		log.Panic("can't create zap logger")
+		log.Panic("can't create zap production logger")
 	}
 }
