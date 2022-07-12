@@ -6,8 +6,8 @@ package storage
 type Withdraw struct {
 	StorageDB StorageDBparam
 
-	OrderID         uint32
-	AccrualWithdraw uint
+	OrderID         string `json:"order"`
+	AccrualWithdraw uint   `json:"sum"`
 	UserID          uint32
 	Status          string
 }

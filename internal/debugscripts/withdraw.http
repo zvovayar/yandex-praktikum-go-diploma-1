@@ -1,0 +1,7 @@
+POST http://localhost:7777/api/user/balance/withdraw/ HTTP/1.1
+content-type: application/json
+
+{
+    "order": "2377225624",
+    "sum": 751
+}

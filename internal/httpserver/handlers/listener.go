@@ -28,12 +28,16 @@ func GoListenRutine() {
 
 	// GET requests
 	r.Get("/", http.NotFound)
+	r.Get("/api/user/orders", GetUserOrders)
+	r.Get("/api/user/balance", GetUserBalance)
+	r.Get("/api/user/balance/withdraw", GetUserBalanceWithdrawals)
 
 	// POST requests
 	r.Post("/", http.NotFound)
 	r.Post("/api/user/register", PostUserRegister)
 	r.Post("/api/user/login", PostUserLogin)
 	r.Post("/api/user/orders", PostUserOrders)
+	r.Post("/api/user/balance/withdraw", PostUserBalanceWithdraw)
 
 	// start listener http
 	go ListenRutine(r)

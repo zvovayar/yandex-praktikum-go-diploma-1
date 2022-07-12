@@ -129,28 +129,119 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 func GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	//
 	// TODO: GET /api/user/orders.
-	// Хендлер доступен только авторизованному пользователю. Номера заказа в выдаче должны быть отсортированы по времени загрузки от самых старых к самым новым
+	// Хендлер доступен только авторизованному пользователю.
+	// Номера заказа в выдаче должны быть отсортированы по времени загрузки от самых старых к самым новым
 	//
+
+	// load data from service
+	// call business logic
+	bs := new(businesslogic.BusinessSession)
+	json, err := bs.GetOrders()
+
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("<h1>Fail get orders </h1>"))
+		return
+	}
+
+	// return answer
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(json))
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+	}
 }
 
 func GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	//
 	// TODO: GET /api/user/balance.
-	// Хендлер доступен только авторизованному пользователю. В ответе должны содержаться данные о текущей сумме баллов лояльности, а также сумме использованных за весь период регистрации баллов
+	// Хендлер доступен только авторизованному пользователю.
+	// В ответе должны содержаться данные о текущей сумме баллов лояльности,
+	// а также сумме использованных за весь период регистрации баллов
 	//
+	// load data from service
+	// call business logic
+	bs := new(businesslogic.BusinessSession)
+	json, err := bs.GetBalance()
+
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("<h1>Fail get balance </h1>"))
+		return
+	}
+
+	// return answer
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(json))
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+	}
 }
 
 func PostUserBalanceWithdraw(w http.ResponseWriter, r *http.Request) {
 	//
 	// TODO: POST /api/user/balance/withdraw
-	// Хендлер доступен только авторизованному пользователю. Номер заказа представляет собой гипотетический номер нового заказа пользователя, в счёт оплаты которого списываются баллы.
-	// Примечание: для успешного списания достаточно успешной регистрации запроса, никаких внешних систем начисления не предусмотрено и не требуется реализовывать
+	// Хендлер доступен только авторизованному пользователю.
+	// Номер заказа представляет собой гипотетический номер нового заказа пользователя, в счёт оплаты которого списываются баллы.
+	// Примечание: для успешного списания достаточно успешной регистрации запроса,
+	// никаких внешних систем начисления не предусмотрено и не требуется реализовывать
 	//
+	var withdraw storage.Withdraw
+
+	// decode JSON
+	config.LoggerCLS.Sugar().Debugf("Body=%v", r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&withdraw); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		config.LoggerCLS.Info(err.Error())
+		return
+	}
+
+	config.LoggerCLS.Sugar().Debugf("withdraw=%v", withdraw)
+
+	// call business logic
+	bs := new(businesslogic.BusinessSession)
+	err := bs.Withdraw(withdraw)
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("<h1>Fail withdraw </h1>"))
+		return
+	}
+
+	// return answer
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("<h1>Withdraw registered </h1>"))
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+	}
 }
 
 func GetUserBalanceWithdrawals(w http.ResponseWriter, r *http.Request) {
 	//
 	// TODO: GET /api/user/balance/withdrawals.
-	// Хендлер доступен только авторизованному пользователю. Факты выводов в выдаче должны быть отсортированы по времени вывода от самых старых к самым новым
+	// Хендлер доступен только авторизованному пользователю.
+	// Факты выводов в выдаче должны быть отсортированы по времени вывода от самых старых к самым новым
 	//
+
+	bs := new(businesslogic.BusinessSession)
+	json, err := bs.GetWithdrawals()
+
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("<h1>Fail get withdrawals balance </h1>"))
+		return
+	}
+
+	// return answer
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(json))
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+	}
 }

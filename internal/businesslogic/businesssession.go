@@ -20,6 +20,65 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 	config.LoggerCLS.Debug("login user " + u.Login)
 	return nil
 }
-func (bs *BusinessSession) Buy() (err error)                { return nil }
-func (bs *BusinessSession) LoadOrder(oc string) (err error) { return nil }
-func (bs *BusinessSession) Withdraw() (err error)           { return nil }
+
+func (bs *BusinessSession) LoadOrder(oc string) (err error) {
+	config.LoggerCLS.Debug("load order " + oc)
+	return nil
+}
+
+func (bs *BusinessSession) GetOrders() (json string, err error) {
+	config.LoggerCLS.Debug("read orders and make json ")
+
+	json = `[
+		{
+			"number": "9278923470",
+			"status": "PROCESSED",
+			"accrual": 500,
+			"uploaded_at": "2020-12-10T15:15:45+03:00"
+		},
+		{
+			"number": "12345678903",
+			"status": "PROCESSING",
+			"uploaded_at": "2020-12-10T15:12:01+03:00"
+		},
+		{
+			"number": "346436439",
+			"status": "INVALID",
+			"uploaded_at": "2020-12-09T16:09:53+03:00"
+		}
+	]`
+
+	return json, nil
+}
+
+func (bs *BusinessSession) GetBalance() (json string, err error) {
+	config.LoggerCLS.Debug("read balance and make json ")
+
+	json = `{
+		"current": 500.5,
+		"withdrawn": 42
+	}`
+
+	return json, nil
+}
+
+func (bs *BusinessSession) Withdraw(w storage.Withdraw) (err error) {
+	config.LoggerCLS.Debug("withdraw register ")
+	return nil
+}
+
+func (bs *BusinessSession) GetWithdrawals() (json string, err error) {
+	config.LoggerCLS.Debug("read withdrawals balance and make json ")
+
+	json = `[
+		{
+			"order": "2377225624",
+			"sum": 500,
+			"processed_at": "2020-12-09T16:09:57+03:00"
+		}
+	]`
+
+	return json, nil
+}
+
+func (bs *BusinessSession) Buy() (err error) { return nil }
