@@ -8,7 +8,7 @@ type User struct {
 
 	Login      string `json:"login"`
 	PasswdHash string `json:"password"`
-	Id         uint32
+	ID         uint32
 }
 
 //

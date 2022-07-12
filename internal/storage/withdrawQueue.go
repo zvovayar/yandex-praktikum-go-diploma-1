@@ -8,7 +8,7 @@ import "time"
 type WithdrawQueue struct {
 	StorageDB StorageDBparam
 
-	OrderId        uint32
+	OrderID        uint32
 	TimeIn         time.Time
 	TimeLastStatus time.Time
 	Status         string

@@ -1,4 +1,4 @@
-package accrual_client
+package accrualclient
 
 type Accrual struct {
 	Address string

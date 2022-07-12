@@ -8,7 +8,7 @@ import "time"
 type WithdrawLog struct {
 	StorageDB StorageDBparam
 
-	OrderId uint32
+	OrderID uint32
 	Time    time.Time
 	Message string
 	Status  string

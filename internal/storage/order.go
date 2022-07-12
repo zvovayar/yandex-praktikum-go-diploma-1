@@ -6,9 +6,9 @@ package storage
 type Order struct {
 	StorageDB StorageDBparam
 
-	Id      uint32
+	ID      uint32
 	Accrual uint
-	UserId  uint32
+	UserID  uint32
 	Status  string
 }
 
