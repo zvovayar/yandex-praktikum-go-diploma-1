@@ -1,6 +1,14 @@
 package main
 
-import config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
+import (
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
+	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/handlers"
+)
 
 func main() {
 	//
@@ -10,17 +18,35 @@ func main() {
 	// run main gorutines
 	//
 
+	waitstop := 1
+
 	config.ConfigCLS.LoadConfig()
+	defer config.LoggerCLS.Info("CLS server stopped.")
 	defer config.LoggerCLS.Sync()
+	//
+	// final defer insert here
+	//
+	defer config.LoggerCLS.Info("CLS server begin stop...")
 	config.LoggerCLS.Info("CLS server start")
 
 	//
 	// TODO: run main gorutines
 	//
-	config.LoggerCLS.Info("CLS server started")
 
 	//
-	// TODO: run http server
+	// run http server
 	//
+	handlers.GoListenRutine()
+	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
+
+	// wait signals
+	// we need to reserve to buffer size 1, so the notifier are not blocked
+	chanOS := make(chan os.Signal, 1)
+	signal.Notify(chanOS, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
+	config.LoggerCLS.Info("CLS server begin waiting signal...")
+	sig := <-chanOS
+
+	config.LoggerCLS.Sugar().Infof("INFO got a signal '%v', start shutting down... wait %v seconds\n", sig, waitstop)
+	<-time.After(time.Second * time.Duration(waitstop))
 
 }

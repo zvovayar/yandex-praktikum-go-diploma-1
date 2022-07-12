@@ -18,10 +18,10 @@ type OrderLog struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *OrderLog) Create() (err error)
-func (u *OrderLog) Read() (err error)
-func (u *OrderLog) Update() (err error)
-func (u *OrderLog) Delete() (err error)
-func (u *OrderLog) ExistOrNot() (err error)
+func (u *OrderLog) Create() (err error)     { return nil }
+func (u *OrderLog) Read() (err error)       { return nil }
+func (u *OrderLog) Update() (err error)     { return nil }
+func (u *OrderLog) Delete() (err error)     { return nil }
+func (u *OrderLog) ExistOrNot() (err error) { return nil }
 
 // OrderLog's functions

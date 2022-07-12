@@ -18,10 +18,10 @@ type WithdrawLog struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *WithdrawLog) Create() (err error)
-func (u *WithdrawLog) Read() (err error)
-func (u *WithdrawLog) Update() (err error)
-func (u *WithdrawLog) Delete() (err error)
-func (u *WithdrawLog) ExistOrNot() (err error)
+func (u *WithdrawLog) Create() (err error)     { return nil }
+func (u *WithdrawLog) Read() (err error)       { return nil }
+func (u *WithdrawLog) Update() (err error)     { return nil }
+func (u *WithdrawLog) Delete() (err error)     { return nil }
+func (u *WithdrawLog) ExistOrNot() (err error) { return nil }
 
 // WithdrawLog's functions

@@ -16,10 +16,10 @@ type Withdraw struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *Withdraw) Create() (err error)
-func (u *Withdraw) Read() (err error)
-func (u *Withdraw) Update() (err error)
-func (u *Withdraw) Delete() (err error)
-func (u *Withdraw) ExistOrNot() (err error)
+func (u *Withdraw) Create() (err error)     { return nil }
+func (u *Withdraw) Read() (err error)       { return nil }
+func (u *Withdraw) Update() (err error)     { return nil }
+func (u *Withdraw) Delete() (err error)     { return nil }
+func (u *Withdraw) ExistOrNot() (err error) { return nil }
 
 // Withdraw's functions

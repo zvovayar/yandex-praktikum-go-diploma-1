@@ -6,8 +6,8 @@ package storage
 type User struct {
 	StorageDB StorageDBparam
 
-	Login      string
-	PasswdHash string
+	Login      string `json:"login"`
+	PasswdHash string `json:"password"`
 	Id         uint32
 }
 
@@ -15,11 +15,11 @@ type User struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *User) Create() (err error)
-func (u *User) Read() (err error)
-func (u *User) Update() (err error)
-func (u *User) Delete() (err error)
-func (u *User) ExistOrNot() (err error)
+func (u *User) Create() (err error)     { return nil }
+func (u *User) Read() (err error)       { return nil }
+func (u *User) Update() (err error)     { return nil }
+func (u *User) Delete() (err error)     { return nil }
+func (u *User) ExistOrNot() (err error) { return nil }
 
 // User's functions
-func (u *User) GetBalance() (err error)
+func (u *User) GetBalance() (err error) { return nil }

@@ -18,10 +18,10 @@ type OrderQueue struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *OrderQueue) Create() (err error)
-func (u *OrderQueue) Read() (err error)
-func (u *OrderQueue) Update() (err error)
-func (u *OrderQueue) Delete() (err error)
-func (u *OrderQueue) ExistOrNot() (err error)
+func (u *OrderQueue) Create() (err error)     { return nil }
+func (u *OrderQueue) Read() (err error)       { return nil }
+func (u *OrderQueue) Update() (err error)     { return nil }
+func (u *OrderQueue) Delete() (err error)     { return nil }
+func (u *OrderQueue) ExistOrNot() (err error) { return nil }
 
 // OrderQueue's functions

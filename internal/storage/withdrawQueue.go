@@ -18,10 +18,10 @@ type WithdrawQueue struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *WithdrawQueue) Create() (err error)
-func (u *WithdrawQueue) Read() (err error)
-func (u *WithdrawQueue) Update() (err error)
-func (u *WithdrawQueue) Delete() (err error)
-func (u *WithdrawQueue) ExistOrNot() (err error)
+func (u *WithdrawQueue) Create() (err error)     { return nil }
+func (u *WithdrawQueue) Read() (err error)       { return nil }
+func (u *WithdrawQueue) Update() (err error)     { return nil }
+func (u *WithdrawQueue) Delete() (err error)     { return nil }
+func (u *WithdrawQueue) ExistOrNot() (err error) { return nil }
 
 // WithdrawQueue's functions

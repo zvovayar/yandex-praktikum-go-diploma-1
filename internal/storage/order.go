@@ -16,10 +16,10 @@ type Order struct {
 // TODO: realize interface StorageDBobjects
 //
 
-func (u *Order) Create() (err error)
-func (u *Order) Read() (err error)
-func (u *Order) Update() (err error)
-func (u *Order) Delete() (err error)
-func (u *Order) ExistOrNot() (err error)
+func (u *Order) Create() (err error)     { return nil }
+func (u *Order) Read() (err error)       { return nil }
+func (u *Order) Update() (err error)     { return nil }
+func (u *Order) Delete() (err error)     { return nil }
+func (u *Order) ExistOrNot() (err error) { return nil }
 
 // Order's functions

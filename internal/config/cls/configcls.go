@@ -2,9 +2,9 @@ package config
 
 import (
 	"flag"
-	"log"
 
 	"github.com/caarlos0/env"
+
 	"go.uber.org/zap"
 )
 
@@ -16,12 +16,13 @@ type Config struct {
 	RunAddress           string `env:"RUN_ADDRESS"`
 	DataBaseURI          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	DebugLogger          string
 }
 
 func (c *Config) LoadConfig() (err error) {
 
 	//
-	// TODO: load config from environment and comman flags
+	// load config from environment and comman flags
 	// адрес и порт запуска сервиса: переменная окружения ОС RUN_ADDRESS или флаг -a;
 	// адрес подключения к базе данных: переменная окружения ОС DATABASE_URI или флаг -d;
 	// адрес системы расчёта начислений: переменная окружения ОС ACCRUAL_SYSTEM_ADDRESS или флаг -r.
@@ -30,22 +31,21 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.RunAddress = "localhost:8888"
 	ConfigCLS.DataBaseURI = ""
 	ConfigCLS.AccrualSystemAddress = "localhost:8080"
-
-	var debuglogger string
+	ConfigCLS.DebugLogger = "+"
 
 	// load flags
 	cflags := new(Config)
 	flag.StringVar(&cflags.RunAddress, "a", "", "address to listen on")
 	flag.StringVar(&cflags.DataBaseURI, "d", "", "database URI")
 	flag.StringVar(&cflags.AccrualSystemAddress, "r", "", "accrual system address")
-	flag.StringVar(&debuglogger, "v", "-", "switch on debug logger (+)")
+	flag.StringVar(&cflags.DebugLogger, "v", "+", "switch off debug logger (-)")
 	flag.Parse()
 
-	if debuglogger == "+" {
+	if cflags.DebugLogger == "+" {
 		LoggerCLS.Sync()
 		LoggerCLS, err = zap.NewDevelopment()
 		if err != nil {
-			log.Panic("can't create zap developmetn logger")
+			LoggerCLS.Panic("can't create zap developmetn logger")
 		}
 	}
 
@@ -77,6 +77,11 @@ func (c *Config) LoadConfig() (err error) {
 	} else if c.AccrualSystemAddress != "" {
 		ConfigCLS.AccrualSystemAddress = c.AccrualSystemAddress
 	}
+	if cflags.DebugLogger != "" {
+		ConfigCLS.DebugLogger = cflags.DebugLogger
+	} else if c.DebugLogger != "" {
+		ConfigCLS.DebugLogger = c.DebugLogger
+	}
 
 	LoggerCLS.Info("effective config variables:")
 	LoggerCLS.Sugar().Info(ConfigCLS)
@@ -91,6 +96,6 @@ func init() {
 	LoggerCLS, err = zap.NewProduction()
 
 	if err != nil {
-		log.Panic("can't create zap production logger")
+		LoggerCLS.Panic("can't create zap production logger")
 	}
 }
