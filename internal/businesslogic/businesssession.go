@@ -1,6 +1,7 @@
 package businesslogic
 
 import (
+	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/sessions"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
@@ -23,7 +24,9 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 
 func (bs *BusinessSession) LoadOrder(oc string) (err error) {
 	config.LoggerCLS.Debug("load order " + oc)
-	return nil
+
+	err = (&(accrualclient.Accrual{Address: config.ConfigCLS.AccrualSystemAddress})).RegisterOrder(oc)
+	return err
 }
 
 func (bs *BusinessSession) GetOrders() (json string, err error) {

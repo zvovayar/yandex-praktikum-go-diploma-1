@@ -101,12 +101,12 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	var ordercode string
 
-	b := make([]byte, 100)
+	b := make([]byte, 300)
 
 	// decode orderstring
-	r.Body.Read(b)
-	ordercode = string(b)
-	config.LoggerCLS.Sugar().Debugf("body=%v ordercode=%v", b, ordercode)
+	n, _ := r.Body.Read(b)
+	ordercode = string(b[:n])
+	config.LoggerCLS.Sugar().Debugf("body=%v ordercode=%v", b[:n], ordercode)
 
 	// call business logic
 	bs := new(businesslogic.BusinessSession)

@@ -1,0 +1,75 @@
+@order1=3788075582
+@order2=2087122947
+@order3=6268438741
+
+###
+
+POST http://localhost:8080/api/goods HTTP/1.1
+content-type: application/json
+
+{
+    "match": "Bork",
+    "reward": 10,
+    "reward_type": "%"
+}
+
+###
+POST http://localhost:8080/api/orders HTTP/1.1
+content-type: application/json
+
+{
+    "order": "{{order1}}",
+    "goods": [
+        {
+            "description": "Чайник Bork",
+            "price": 7000.56
+        }
+    ]
+}
+
+###
+
+POST http://localhost:8080/api/orders HTTP/1.1
+content-type: application/json
+
+{
+    "order": "{{order2}}",
+    "goods": [
+        {
+            "description": "Пылесос Bork",
+            "price": 8000.27
+        }
+    ]
+}
+
+###
+
+POST http://localhost:8080/api/orders HTTP/1.1
+content-type: application/json
+
+{
+    "order": "{{order3}}",
+    "goods": [
+        {
+            "description": "Капучинатор Bor",
+            "price": 7000.5
+        }
+    ]
+}
+
+###
+
+POST http://localhost:8080/api/orders HTTP/1.1
+content-type: application/json
+
+{"order":"987349837534656564","goods":[{"description":"Пеленальный столик Bork","price":123.45}]}
+###
+
+GET http://localhost:8080/api/orders/{{order1}} HTTP/1.1
+###
+GET http://localhost:8080/api/orders/{{order2}} HTTP/1.1
+###
+GET http://localhost:8080/api/orders/{{order3}} HTTP/1.1
+
+###
+GET http://localhost:8080/api/orders/7900691986
