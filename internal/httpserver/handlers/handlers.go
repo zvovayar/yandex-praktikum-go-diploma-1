@@ -66,11 +66,6 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	_, tokenString, _ := TokenAuth.Encode(claims)
 
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
-	// tokens := Token{tokenString}
-	// json, err := json.Marshal(tokens)
-	if err != nil {
-		config.LoggerCLS.Info(err.Error())
-	}
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
@@ -96,7 +91,7 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.LoggerCLS.Sugar().Debugf("newuser=%v", user)
+	config.LoggerCLS.Sugar().Debugf("user=%v", user)
 
 	// call business logic
 	bs := new(businesslogic.BusinessSession)
@@ -109,6 +104,18 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return answer
+	claims := make(map[string]interface{})
+	claims["user_id"] = user.Login
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * 60)
+
+	config.LoggerCLS.Sugar().Debugf("user logged in claims=%v", claims)
+
+	_, tokenString, _ := TokenAuth.Encode(claims)
+
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+
+	w.Header().Set("Content-Type", "text/plain")
+
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte("<h1>User logged in </h1>" + user.Login))
 	if err != nil {

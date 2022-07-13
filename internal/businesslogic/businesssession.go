@@ -1,6 +1,8 @@
 package businesslogic
 
 import (
+	"errors"
+
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/sessions"
@@ -33,6 +35,23 @@ func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
 func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 
 	config.LoggerCLS.Debug("login user " + u.Login)
+
+	db, err := storage.GORMinterface.GetDB()
+
+	if err != nil {
+		return err
+	}
+
+	var user storage.User
+	tx := db.First(&user, "login = ?", u.Login)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if user.PasswdHash != u.PasswdHash {
+		return errors.New("password failed")
+	}
+
 	return nil
 }
 
