@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -55,7 +56,6 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return answer
-	w.WriteHeader(http.StatusOK)
 
 	claims := make(map[string]interface{})
 	claims["user_id"] = newuser.Login
@@ -64,14 +64,17 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("claims=%v", claims)
 
 	_, tokenString, _ := TokenAuth.Encode(claims)
-	tokens := Token{tokenString}
-	json, err := json.Marshal(tokens)
+
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+	// tokens := Token{tokenString}
+	// json, err := json.Marshal(tokens)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(json))
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("user registered: " + newuser.Login))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 	}
