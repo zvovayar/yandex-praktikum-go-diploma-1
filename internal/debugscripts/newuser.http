@@ -1,7 +1,7 @@
-POST http://localhost:7777/api/user/register/ HTTP/1.1
+POST http://localhost:7777/api/user/register HTTP/1.1
 content-type: application/json
 
 {
-    "login": "Вася112",
+    "login": "qaqsdd1123",
 	"password": "asdasdfsfds"
 }

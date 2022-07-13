@@ -3,11 +3,17 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/businesslogic"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
 )
+
+type Token struct {
+	Token string `json:"token"`
+}
 
 func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	//
@@ -50,10 +56,26 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 
 	// return answer
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte("<h1>Created new user </h1>" + newuser.Login))
+
+	claims := make(map[string]interface{})
+	claims["user_id"] = newuser.Login
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * 60)
+
+	config.LoggerCLS.Sugar().Debugf("claims=%v", claims)
+
+	_, tokenString, _ := TokenAuth.Encode(claims)
+	tokens := Token{tokenString}
+	json, err := json.Marshal(tokens)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(json))
+	if err != nil {
+		config.LoggerCLS.Info(err.Error())
+	}
+
 }
 
 func PostUserLogin(w http.ResponseWriter, r *http.Request) {

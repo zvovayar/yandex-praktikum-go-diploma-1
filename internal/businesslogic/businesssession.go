@@ -26,6 +26,8 @@ func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
 		return tx.Error
 	}
 
+	config.LoggerCLS.Sugar().Debugf("new user registered successfuly: %v", u)
+
 	return nil
 }
 func (bs *BusinessSession) UserLogin(u storage.User) (err error) {

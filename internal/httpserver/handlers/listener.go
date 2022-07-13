@@ -2,42 +2,80 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth/v5"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 )
+
+var TokenAuth *jwtauth.JWTAuth
 
 func GoListenRutine() {
 	// маршрутизация запросов обработчику
 	r := chi.NewRouter()
 
-	// зададим встроенные middleware, чтобы улучшить стабильность приложения
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	// protected API
+	r.Group(func(r chi.Router) {
+		// зададим встроенные middleware, чтобы улучшить стабильность приложения
+		r.Use(middleware.RequestID)
+		r.Use(middleware.RealIP)
 
-	// so mach information, switch ON only for debug
-	if config.ConfigCLS.DebugLogger == "+" {
-		r.Use(middleware.Logger)
+		// so mach information, switch ON only for debug
+		if config.ConfigCLS.DebugLogger == "+" {
+			r.Use(middleware.Logger)
+		}
+		r.Use(middleware.Recoverer)
+		r.Use(middleware.StripSlashes)
+		r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
+		r.Use(middleware.Compress(5, "application/json", "html/text", "text/plain", "text/html"))
 
-	}
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.StripSlashes)
-	r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
-	r.Use(middleware.Compress(5, "application/json", "html/text", "text/plain", "text/html"))
+		// JWT init
 
-	// GET requests
-	r.Get("/", http.NotFound)
-	r.Get("/api/user/orders", GetUserOrders)
-	r.Get("/api/user/balance", GetUserBalance)
-	r.Get("/api/user/balance/withdraw", GetUserBalanceWithdrawals)
+		claims := make(map[string]interface{})
+		claims["user_id"] = 123
+		claims["exp"] = jwtauth.ExpireIn(time.Second * 60)
+		_, tokenString, _ := TokenAuth.Encode(claims)
 
-	// POST requests
-	r.Post("/", http.NotFound)
-	r.Post("/api/user/register", PostUserRegister)
-	r.Post("/api/user/login", PostUserLogin)
-	r.Post("/api/user/orders", PostUserOrders)
-	r.Post("/api/user/balance/withdraw", PostUserBalanceWithdraw)
+		config.LoggerCLS.Sugar().Debug("for debug only! sample jwt fjr user 123 is %s\n\n", tokenString)
+
+		r.Use(jwtauth.Verifier(TokenAuth))
+		r.Use(jwtauth.Authenticator)
+
+		// GET requests
+		r.Get("/api/user/orders", GetUserOrders)
+		r.Get("/api/user/balance", GetUserBalance)
+		r.Get("/api/user/balance/withdraw", GetUserBalanceWithdrawals)
+
+		// POST requests
+		r.Post("/", http.NotFound)
+		r.Post("/api/user/orders", PostUserOrders)
+		r.Post("/api/user/balance/withdraw", PostUserBalanceWithdraw)
+	})
+
+	// anonymous API
+	r.Group(func(r chi.Router) {
+		// зададим встроенные middleware, чтобы улучшить стабильность приложения
+		r.Use(middleware.RequestID)
+		r.Use(middleware.RealIP)
+
+		// so mach information, switch ON only for debug
+		if config.ConfigCLS.DebugLogger == "+" {
+			r.Use(middleware.Logger)
+		}
+		r.Use(middleware.Recoverer)
+		r.Use(middleware.StripSlashes)
+		r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
+		r.Use(middleware.Compress(5, "application/json", "html/text", "text/plain", "text/html"))
+
+		// GET requests
+		r.Get("/", http.NotFound)
+
+		// POST requests
+		r.Post("/api/user/register", PostUserRegister)
+		r.Post("/api/user/login", PostUserLogin)
+	})
 
 	// start listener http
 	go ListenRutine(r)
@@ -48,4 +86,9 @@ func ListenRutine(r *chi.Mux) {
 	if err := http.ListenAndServe(config.ConfigCLS.RunAddress, r); err != nil {
 		config.LoggerCLS.Fatal(err.Error())
 	}
+}
+
+func init() {
+	TokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+
 }

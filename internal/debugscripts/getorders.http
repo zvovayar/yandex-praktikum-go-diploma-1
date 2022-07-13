@@ -1,1 +1,2 @@
-GET http://localhost:7777/api/user/orders/ HTTP/1.1
+GET http://localhost:7777/api/user/orders HTTP/1.1
+Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjENTc3NDM5NjAsInVzZXJfaWQiOjEyM30.u-e90eqYp4y_7VCp5zANu4_3GFbGgWX94uk-7JthMlY
