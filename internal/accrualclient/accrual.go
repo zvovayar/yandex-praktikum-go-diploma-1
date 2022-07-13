@@ -53,7 +53,7 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 	config.LoggerCLS.Sugar().Debugf("order=%v", order)
 	config.LoggerCLS.Sugar().Debugf("body=%v", string(body))
 
-	var url = fmt.Sprintf("http://%v/api/orders",
+	var url = fmt.Sprintf("%v/api/orders",
 		a.Address)
 
 	config.LoggerCLS.Sugar().Debugf(url)
