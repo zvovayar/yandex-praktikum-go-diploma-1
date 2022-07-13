@@ -14,6 +14,18 @@ type BusinessSession struct {
 func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
 
 	config.LoggerCLS.Debug("register new user " + u.Login)
+
+	db, err := storage.GORMinterface.GetDB()
+
+	if err != nil {
+		return err
+	}
+
+	tx := db.Create(&u)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
 	return nil
 }
 func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
