@@ -315,9 +315,9 @@ func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {
 
 		orders[i].Accrual = accrual
 		orders[i].Status = status
-		db.Save(&orders[i])
-		if err != nil {
-			return err
+		tx = db.Save(&orders[i])
+		if tx.Error != nil {
+			return tx.Error
 		}
 	}
 
