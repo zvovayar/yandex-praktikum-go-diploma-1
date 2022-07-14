@@ -72,7 +72,7 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 
 	// check Luhn algoritm
 	if !checkdigit.NewLuhn().Verify(oc) {
-		return 400, errors.New("order number is not valid by Luhn alogoritm: " + oc)
+		return 422, errors.New("order number is not valid by Luhn alogoritm: " + oc)
 	}
 
 	// check user exist?
