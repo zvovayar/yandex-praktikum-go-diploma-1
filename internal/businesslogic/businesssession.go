@@ -126,6 +126,12 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 		return []byte(""), tx.Error
 	}
 
+	// update orders from accrual
+	err = bs.UpdateOrdersFromAccrual(user.ID)
+	if err != nil {
+		return []byte(""), err
+	}
+
 	// select order numbers for userid
 	var orders []storage.Order
 	tx = db.Find(&orders, "user_id = ?", user.ID)
@@ -139,8 +145,8 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	var status string
 	var accrual float32
 
-	var ordersForJson []OrderForJSON
-	ordersForJson = make([]OrderForJSON, 0)
+	var ordersForJSON []OrderForJSON
+	ordersForJSON = make([]OrderForJSON, 0)
 
 	for i := 0; i < len(orders); i++ {
 
@@ -151,7 +157,7 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 			return []byte(""), err
 		}
 
-		ordersForJson = append(ordersForJson, (OrderForJSON{
+		ordersForJSON = append(ordersForJSON, (OrderForJSON{
 			Number:     orders[i].OrderNumber,
 			Status:     status,
 			Accrual:    accrual,
@@ -160,10 +166,10 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	}
 
 	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase with data from accrual for user:%v are:%v",
-		ulogin, ordersForJson)
+		ulogin, ordersForJSON)
 
 	// make JSON
-	jsonb, err = json.Marshal(ordersForJson)
+	jsonb, err = json.Marshal(ordersForJSON)
 	if err != nil {
 		return []byte(""), err
 	}
@@ -183,8 +189,83 @@ func (bs *BusinessSession) GetBalance() (json string, err error) {
 	return json, nil
 }
 
-func (bs *BusinessSession) Withdraw(w storage.Withdraw) (err error) {
-	config.LoggerCLS.Debug("withdraw register ")
+func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err error) {
+
+	config.LoggerCLS.Debug(fmt.Sprintf("for user: %v withdraw register: %v ", ulogin, w))
+
+	// check Luhn algoritm
+	if !checkdigit.NewLuhn().Verify(w.OrderNumber) {
+		return errors.New("order number is not valid by Luhn alogoritm: " + w.OrderNumber)
+	}
+	// check user exist?
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return err
+	}
+	var user storage.User
+	tx := db.First(&user, "login = ?", ulogin)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	w.UserID = user.ID
+
+	// TODO: check is this order not registered?
+
+	// update orders from accrual
+	err = bs.UpdateOrdersFromAccrual(user.ID)
+	if err != nil {
+		return err
+	}
+
+	// check balance
+	// sum accrual in orders - sum withdrawals
+	var count int64
+	db.Model(&storage.Order{}).Where("user_id = ?", user.ID).Count(&count)
+	var sumOrders float32
+	if count == 0 {
+		sumOrders = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual) FROM gorm_orders WHERE user_id = ?",
+			user.ID).Scan(&sumOrders)
+		if tx.RowsAffected == 0 {
+			sumOrders = 0
+		} else if tx.Error != nil {
+			return tx.Error
+		}
+	}
+
+	db.Model(&storage.Withdraw{}).Where("user_id = ?", user.ID).Count(&count)
+	var sumWithdraws float32
+	if count == 0 {
+		sumWithdraws = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual_withdraw) FROM gorm_withdraws WHERE user_id = ?",
+			user.ID).Scan(&sumWithdraws)
+		if tx.RowsAffected == 0 {
+			sumWithdraws = 0
+		} else if tx.Error != nil {
+			return tx.Error
+		}
+	}
+
+	// if balance to small return error
+	if w.AccrualWithdraw > sumOrders-sumWithdraws {
+		return fmt.Errorf("w.AccrualWithdraw=%v > sumOrders=%v - sumWithdraws=%v",
+			w.AccrualWithdraw, sumOrders, sumWithdraws)
+	}
+
+	// all is OK register withdraw
+	config.LoggerCLS.Debug(fmt.Sprintf("w.AccrualWithdraw=%v, sumOrders=%v, sumWithdraws=%v",
+		w.AccrualWithdraw, sumOrders, sumWithdraws))
+
+	w.UserID = user.ID
+	tx = db.Create(&w)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	config.LoggerCLS.Sugar().Debugf("new withdraw registered successfuly: %v", w)
+
 	return nil
 }
 
@@ -202,4 +283,43 @@ func (bs *BusinessSession) GetWithdrawals() (json string, err error) {
 	return json, nil
 }
 
-func (bs *BusinessSession) Buy() (err error) { return nil }
+func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {
+
+	config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v", uid))
+	// select all orders with not final statuses
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return err
+	}
+
+	orders := make([]storage.Order, 0)
+
+	tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v orders:%v", uid, orders))
+
+	// check statuses and sums from accrual and update CLS DB
+	var status string
+	var accrual float32
+
+	for i := 0; i < len(orders); i++ {
+
+		status, accrual, err = (&(accrualclient.Accrual{
+			Address: config.ConfigCLS.AccrualSystemAddress,
+		})).GetOrderStatus(orders[i].OrderNumber)
+		if err != nil {
+			return err
+		}
+
+		orders[i].Accrual = accrual
+		orders[i].Status = status
+		db.Save(&orders[i])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

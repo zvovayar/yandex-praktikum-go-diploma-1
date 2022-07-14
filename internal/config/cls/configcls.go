@@ -33,7 +33,7 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.DataBaseURI = ""
 	ConfigCLS.AccrualSystemAddress = "localhost:8080"
 	ConfigCLS.DebugLogger = "+"
-	ConfigCLS.TokenTimountMinutes = 60
+	ConfigCLS.TokenTimountMinutes = 600
 
 	// load flags
 	cflags := new(Config)

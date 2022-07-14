@@ -243,9 +243,13 @@ func PostUserBalanceWithdraw(w http.ResponseWriter, r *http.Request) {
 
 	config.LoggerCLS.Sugar().Debugf("withdraw=%v", withdraw)
 
+	// decode climes from JWT
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
+
 	// call business logic
 	bs := new(businesslogic.BusinessSession)
-	err := bs.Withdraw(withdraw)
+	err := bs.Withdraw(withdraw, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

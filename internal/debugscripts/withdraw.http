@@ -1,7 +1,8 @@
-POST http://localhost:7777/api/user/balance/withdraw/ HTTP/1.1
+POST http://localhost:7777/api/user/balance/withdraw HTTP/1.1
+Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc4MTY0MjYsInVzZXJfaWQiOiLQktCw0YHRjzExIn0.lRFQ3i29qs_H2-Fuw1cFK-d2lIKSucX8xMXLZZW8rqA
 content-type: application/json
 
 {
-    "order": "2377225624",
-    "sum": 751
+    "order": "6768946243",
+    "sum": 2.43
 }
