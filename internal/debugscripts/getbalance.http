@@ -1,1 +1,2 @@
-GET http://localhost:7777/api/user/balance/ HTTP/1.1
+GET http://localhost:7777/api/user/balance HTTP/1.1
+Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc4NTM2NDgsInVzZXJfaWQiOiLQktCw0YHRjzExMjMifQ.fhfZgVk_CqzAvrDC8biSt0oAYfHekpIPYvnwUv-LBrk

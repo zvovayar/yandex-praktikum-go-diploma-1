@@ -178,15 +178,80 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	return jsonb, nil
 }
 
-func (bs *BusinessSession) GetBalance() (json string, err error) {
-	config.LoggerCLS.Debug("read balance and make json ")
+func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 
-	json = `{
-		"current": 500.5,
-		"withdrawn": 42
-	}`
+	config.LoggerCLS.Debug("get balance and make json for user: " + ulogin)
 
-	return json, nil
+	// check user exist?
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return []byte(""), err
+	}
+	var user storage.User
+	tx := db.First(&user, "login = ?", ulogin)
+	if tx.Error != nil {
+		return []byte(""), tx.Error
+	}
+
+	// update orders from accrual
+	err = bs.UpdateOrdersFromAccrual(user.ID)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	// check balance
+	// sum accrual in orders - sum withdrawals
+	var count int64
+	db.Model(&storage.Order{}).Where("user_id = ?", user.ID).Count(&count)
+	var sumOrders float32
+	if count == 0 {
+		sumOrders = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual) FROM gorm_orders WHERE user_id = ?",
+			user.ID).Scan(&sumOrders)
+		if tx.RowsAffected == 0 {
+			sumOrders = 0
+		} else if tx.Error != nil {
+			return []byte(""), tx.Error
+		}
+	}
+
+	db.Model(&storage.Withdraw{}).Where("user_id = ?", user.ID).Count(&count)
+	var sumWithdraws float32
+	if count == 0 {
+		sumWithdraws = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual_withdraw) FROM gorm_withdraws WHERE user_id = ?",
+			user.ID).Scan(&sumWithdraws)
+		if tx.RowsAffected == 0 {
+			sumWithdraws = 0
+		} else if tx.Error != nil {
+			return []byte(""), tx.Error
+		}
+	}
+
+	type Balance struct {
+		Current  float32 `json:"current"`
+		Withdraw float32 `json:"withdraw"`
+	}
+
+	b := Balance{
+		Current:  sumOrders - sumWithdraws,
+		Withdraw: sumWithdraws,
+	}
+
+	config.LoggerCLS.Sugar().Debugf("balance in CLS dtabase for user:%v are:%v",
+		ulogin, b)
+
+	// make JSON
+	jsonb, err = json.Marshal(b)
+	if err != nil {
+		return []byte(""), err
+	}
+	config.LoggerCLS.Sugar().Debugf("json balance in CLS dtabase for user:%v are:%v",
+		ulogin, string(jsonb))
+
+	return jsonb, nil
 }
 
 func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err error) {

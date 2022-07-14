@@ -1,5 +1,5 @@
 POST http://localhost:7777/api/user/balance/withdraw HTTP/1.1
-Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc4MTY0MjYsInVzZXJfaWQiOiLQktCw0YHRjzExIn0.lRFQ3i29qs_H2-Fuw1cFK-d2lIKSucX8xMXLZZW8rqA
+Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc4NTM2NDgsInVzZXJfaWQiOiLQktCw0YHRjzExMjMifQ.fhfZgVk_CqzAvrDC8biSt0oAYfHekpIPYvnwUv-LBrk
 content-type: application/json
 
 {

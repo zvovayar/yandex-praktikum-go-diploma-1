@@ -204,8 +204,13 @@ func GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	//
 	// load data from service
 	// call business logic
+
+	// decode climes from JWT
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
+
 	bs := new(businesslogic.BusinessSession)
-	json, err := bs.GetBalance()
+	jsonb, err := bs.GetBalance(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
@@ -217,7 +222,7 @@ func GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	// return answer
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(json))
+	_, err = w.Write(jsonb)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 	}
