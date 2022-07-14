@@ -78,7 +78,7 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 	defer resp.Body.Close()
 	config.LoggerCLS.Sugar().Debug(resp.Status)
 
-	if resp.StatusCode > 299 {
+	if resp.StatusCode > 299 && resp.StatusCode != 409 {
 		return fmt.Errorf("Accrual return: %v", resp)
 	}
 	return nil

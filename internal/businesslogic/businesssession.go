@@ -18,10 +18,10 @@ type BusinessSession struct {
 }
 
 type OrderForJson struct {
-	Number      string    `json:"number"`
-	Status      string    `json:"status"`
-	Accrual     float32   `json:"accrual"`
-	Uploaded_at time.Time `json:"uploaded_at"`
+	Number     string    `json:"number"`
+	Status     string    `json:"status"`
+	Accrual    float32   `json:"accrual"`
+	UploadedAt time.Time `json:"uploaded_at"`
 }
 
 func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
@@ -152,10 +152,10 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 		}
 
 		ordersForJson = append(ordersForJson, (OrderForJson{
-			Number:      orders[i].OrderNumber,
-			Status:      status,
-			Accrual:     accrual,
-			Uploaded_at: orders[i].CreatedAt,
+			Number:     orders[i].OrderNumber,
+			Status:     status,
+			Accrual:    accrual,
+			UploadedAt: orders[i].CreatedAt,
 		}))
 	}
 
