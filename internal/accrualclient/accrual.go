@@ -40,7 +40,7 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 	order := Order{
 		OrderNumber: oid,
 		Goods: []Good{
-			{Description: "Пеленальный столик Bork", Price: 123.45},
+			{Description: "Пеленальный столик Bork", Price: 123.45}, // always fix description and price
 		},
 	}
 
@@ -60,7 +60,6 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
-		// обработаем ошибку
 		config.LoggerCLS.Sugar().Error(err.Error())
 		return err
 	}
@@ -73,7 +72,6 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 	// отправляем запрос
 	resp, err := client.Do(request)
 	if err != nil {
-		// обработаем ошибку
 		config.LoggerCLS.Sugar().Error(err.Error())
 		return err
 	}
@@ -90,5 +88,56 @@ func (a *Accrual) GetOrderStatus(onumber string) (status string, accrual float32
 	//
 	// TODO: call GET /api/orders/{number}
 	//
-	return "", 0, nil
+
+	config.LoggerCLS.Sugar().Debugf("get order status order=%v", onumber)
+
+	var url = fmt.Sprintf("%v/api/orders/%v",
+		a.Address, onumber)
+
+	config.LoggerCLS.Sugar().Debugf(url)
+
+	request, err := http.NewRequest("GET", url, bytes.NewBuffer(make([]byte, 0)))
+	if err != nil {
+		config.LoggerCLS.Sugar().Error(err.Error())
+		return "", 0, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	config.LoggerCLS.Sugar().Debugf("request: %v\n", request)
+
+	client := &http.Client{}
+
+	// отправляем запрос
+	resp, err := client.Do(request)
+	if err != nil {
+		config.LoggerCLS.Sugar().Error(err.Error())
+		return "", 0, err
+	}
+	defer resp.Body.Close()
+	config.LoggerCLS.Sugar().Debug(resp.Status)
+
+	if resp.StatusCode > 299 {
+		return "", 0, fmt.Errorf("Accrual return: %v", resp)
+	}
+
+	type OrderFromAccrual struct {
+		Order   string  `json:"order"`
+		Status  string  `json:"status"`
+		Accrual float32 `json:"accrual"`
+	}
+
+	var orderFromAccrual OrderFromAccrual
+	// b := make([]byte, 10000)
+
+	// decode orderstring
+	// n, _ := resp.Body.Read(b)
+	// config.LoggerCLS.Debug(fmt.Sprintf("body size:%d returned from accrual:%v", n, string(b)))
+
+	if err := json.NewDecoder(resp.Body).Decode(&orderFromAccrual); err != nil {
+		config.LoggerCLS.Sugar().Error(err.Error())
+		return "", 0, err
+	}
+
+	config.LoggerCLS.Debug(fmt.Sprintf("order returned from accrual:%v", orderFromAccrual))
+	return orderFromAccrual.Status, orderFromAccrual.Accrual, nil
 }

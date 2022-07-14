@@ -1,8 +1,10 @@
 package businesslogic
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/osamingo/checkdigit"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
@@ -13,6 +15,13 @@ import (
 
 type BusinessSession struct {
 	HTTPsession httpcs.CurrentSession
+}
+
+type OrderForJson struct {
+	Number      string    `json:"number"`
+	Status      string    `json:"status"`
+	Accrual     float32   `json:"accrual"`
+	Uploaded_at time.Time `json:"uploaded_at"`
 }
 
 func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
@@ -91,7 +100,7 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
 		OrderNumber: oc,
 		// Accrual:     0,
 		UserID: user.ID,
-		// Status:      "",
+		Status: "NEW",
 	}
 
 	tx = db.Create(&order)
@@ -102,29 +111,65 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
 	return nil
 }
 
-func (bs *BusinessSession) GetOrders() (json string, err error) {
-	config.LoggerCLS.Debug("read orders and make json ")
+func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 
-	json = `[
-		{
-			"number": "9278923470",
-			"status": "PROCESSED",
-			"accrual": 500,
-			"uploaded_at": "2020-12-10T15:15:45+03:00"
-		},
-		{
-			"number": "12345678903",
-			"status": "PROCESSING",
-			"uploaded_at": "2020-12-10T15:12:01+03:00"
-		},
-		{
-			"number": "346436439",
-			"status": "INVALID",
-			"uploaded_at": "2020-12-09T16:09:53+03:00"
+	config.LoggerCLS.Debug("read orders and make json for user: " + ulogin)
+
+	// check user exist?
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return []byte(""), err
+	}
+	var user storage.User
+	tx := db.First(&user, "login = ?", ulogin)
+	if tx.Error != nil {
+		return []byte(""), tx.Error
+	}
+
+	// select order numbers for userid
+	var orders []storage.Order
+	tx = db.Find(&orders, "user_id = ?", user.ID)
+	if tx.Error != nil {
+		return []byte(""), tx.Error
+	}
+
+	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase fo user:%v are:%v", ulogin, orders)
+
+	// get accrual statuses for orders from CLS database
+	var status string
+	var accrual float32
+
+	var ordersForJson []OrderForJson
+	ordersForJson = make([]OrderForJson, 0)
+
+	for i := 0; i < len(orders); i++ {
+
+		status, accrual, err = (&(accrualclient.Accrual{
+			Address: config.ConfigCLS.AccrualSystemAddress,
+		})).GetOrderStatus(orders[i].OrderNumber)
+		if err != nil {
+			return []byte(""), err
 		}
-	]`
 
-	return json, nil
+		ordersForJson = append(ordersForJson, (OrderForJson{
+			Number:      orders[i].OrderNumber,
+			Status:      status,
+			Accrual:     accrual,
+			Uploaded_at: orders[i].CreatedAt,
+		}))
+	}
+
+	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase with data from accrual for user:%v are:%v",
+		ulogin, ordersForJson)
+
+	// make JSON
+	jsonb, err = json.Marshal(ordersForJson)
+	if err != nil {
+		return []byte(""), err
+	}
+	config.LoggerCLS.Sugar().Debugf("json orders in CLS dtabase with data from accrual for user:%v are:%v",
+		ulogin, string(jsonb))
+	return jsonb, nil
 }
 
 func (bs *BusinessSession) GetBalance() (json string, err error) {

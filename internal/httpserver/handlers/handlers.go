@@ -150,7 +150,7 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte("<h1>Fail load order code </h1>" + ordercode))
+		_, _ = w.Write([]byte("<h1>Fail load order code </h1>" + ordercode + " " + err.Error()))
 		return
 	}
 
@@ -171,8 +171,13 @@ func GetUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	// load data from service
 	// call business logic
+
+	// decode climes from JWT
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
+
 	bs := new(businesslogic.BusinessSession)
-	json, err := bs.GetOrders()
+	json, err := bs.GetOrders(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
