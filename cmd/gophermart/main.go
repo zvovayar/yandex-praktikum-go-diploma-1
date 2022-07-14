@@ -41,7 +41,7 @@ func main() {
 	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
 
 	bs := new(businesslogic.BusinessSession)
-	bs.UpdateAllOrdersFromAccrual(time.Second * 3)
+	bs.UpdateAllOrdersFromAccrual(time.Second * 1)
 	config.LoggerCLS.Info("CLS server update order statuses started")
 	// wait signals
 	// we need to reserve to buffer size 1, so the notifier are not blocked
