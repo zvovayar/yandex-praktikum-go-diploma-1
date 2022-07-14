@@ -149,7 +149,7 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 	statusCode, err := bs.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(statusCode)
 		_, _ = w.Write([]byte("<h1>Fail load order code </h1>" + ordercode + " " + err.Error()))
 		return
 	}
