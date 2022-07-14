@@ -17,7 +17,7 @@ type BusinessSession struct {
 	HTTPsession httpcs.CurrentSession
 }
 
-type OrderForJson struct {
+type OrderForJSON struct {
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
 	Accrual    float32   `json:"accrual"`
@@ -139,8 +139,8 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	var status string
 	var accrual float32
 
-	var ordersForJson []OrderForJson
-	ordersForJson = make([]OrderForJson, 0)
+	var ordersForJson []OrderForJSON
+	ordersForJson = make([]OrderForJSON, 0)
 
 	for i := 0; i < len(orders); i++ {
 
@@ -151,7 +151,7 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 			return []byte(""), err
 		}
 
-		ordersForJson = append(ordersForJson, (OrderForJson{
+		ordersForJson = append(ordersForJson, (OrderForJSON{
 			Number:     orders[i].OrderNumber,
 			Status:     status,
 			Accrual:    accrual,
