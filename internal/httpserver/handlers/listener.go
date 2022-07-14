@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -30,15 +29,6 @@ func GoListenRutine() {
 		r.Use(middleware.StripSlashes)
 		r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
 		r.Use(middleware.Compress(5, "application/json", "html/text", "text/plain", "text/html"))
-
-		// JWT init
-
-		claims := make(map[string]interface{})
-		claims["user_id"] = 123
-		claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimountMinutes))
-		_, tokenString, _ := TokenAuth.Encode(claims)
-
-		config.LoggerCLS.Sugar().Debug("for debug only! sample jwt for user 123 is %s\n\n", tokenString)
 
 		r.Use(jwtauth.Verifier(TokenAuth))
 		r.Use(jwtauth.Authenticator)

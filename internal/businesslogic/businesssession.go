@@ -231,13 +231,13 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	}
 
 	type Balance struct {
-		Current  float32 `json:"current"`
-		Withdraw float32 `json:"withdraw"`
+		Current   float32 `json:"current"`
+		Withdrawn float32 `json:"withdrawn"`
 	}
 
 	b := Balance{
-		Current:  sumOrders - sumWithdraws,
-		Withdraw: sumWithdraws,
+		Current:   sumOrders - sumWithdraws,
+		Withdrawn: sumWithdraws,
 	}
 
 	config.LoggerCLS.Sugar().Debugf("balance in CLS dtabase for user:%v are:%v",
