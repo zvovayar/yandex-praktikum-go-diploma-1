@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/osamingo/checkdigit"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/sessions"
@@ -59,6 +60,11 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
 
 	config.LoggerCLS.Debug(fmt.Sprintf("user %v load order number %v", ulogin, oc))
+
+	// check Luhn algoritm
+	if !checkdigit.NewLuhn().Verify(oc) {
+		return errors.New("order number is not valid by Luhn alogoritm: " + oc)
+	}
 
 	// check user exist?
 	db, err := storage.GORMinterface.GetDB()

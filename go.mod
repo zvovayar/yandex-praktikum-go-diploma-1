@@ -33,6 +33,8 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.0.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
+	github.com/osamingo/checkdigit v1.0.0
+	github.com/theplant/luhn v0.0.0-20170224032821-81a1a381387a
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
