@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/osamingo/checkdigit"
@@ -104,7 +105,9 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 	}
 
 	tx = db.Create(&order)
-	if tx.Error != nil {
+	if strings.Contains(tx.Error.Error(), "duplicate key value violates unique constraint") {
+		return 200, nil
+	} else if tx.Error != nil {
 		return 500, tx.Error
 	}
 
