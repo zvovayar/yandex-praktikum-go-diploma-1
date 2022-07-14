@@ -114,6 +114,11 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 				return 500, tx.Error
 			}
 			if order.UserID == user.ID {
+				// update orders from accrual
+				err = bs.UpdateOrdersFromAccrual(user.ID)
+				if err != nil {
+					return 500, err
+				}
 				return 200, nil
 			}
 			return 409, errors.New("order number " + oc + " was loaded by other user")
@@ -121,6 +126,11 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 		return 500, tx.Error
 	}
 
+	// update orders from accrual
+	err = bs.UpdateOrdersFromAccrual(user.ID)
+	if err != nil {
+		return 500, err
+	}
 	return 202, nil
 }
 
@@ -140,10 +150,10 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	}
 
 	// update orders from accrual
-	// err = bs.UpdateOrdersFromAccrual(user.ID)
-	// if err != nil {
-	// 	return []byte(""), err
-	// }
+	err = bs.UpdateOrdersFromAccrual(user.ID)
+	if err != nil {
+		return []byte(""), err
+	}
 
 	// select order numbers for userid
 	var orders []storage.Order
