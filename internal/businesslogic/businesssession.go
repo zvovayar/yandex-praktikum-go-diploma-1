@@ -165,25 +165,25 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase fo user:%v are:%v", ulogin, orders)
 
 	// get accrual statuses for orders from CLS database
-	var status string
-	var accrual float32
+	// var status string
+	// var accrual float32
 
 	var ordersForJSON []OrderForJSON
 	ordersForJSON = make([]OrderForJSON, 0)
 
 	for i := 0; i < len(orders); i++ {
 
-		status, accrual, err = (&(accrualclient.Accrual{
-			Address: config.ConfigCLS.AccrualSystemAddress,
-		})).GetOrderStatus(orders[i].OrderNumber)
-		if err != nil {
-			return []byte(""), err
-		}
+		// status, accrual, err = (&(accrualclient.Accrual{
+		// 	Address: config.ConfigCLS.AccrualSystemAddress,
+		// })).GetOrderStatus(orders[i].OrderNumber)
+		// if err != nil {
+		// 	return []byte(""), err
+		// }
 
 		ordersForJSON = append(ordersForJSON, (OrderForJSON{
 			Number:     orders[i].OrderNumber,
-			Status:     status,
-			Accrual:    accrual,
+			Status:     orders[i].Status,  //status,
+			Accrual:    orders[i].Accrual, //accrual,
 			UploadedAt: orders[i].CreatedAt,
 		}))
 	}
