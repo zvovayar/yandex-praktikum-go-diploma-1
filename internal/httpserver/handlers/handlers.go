@@ -146,7 +146,7 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	// call business logic
 	bs := new(businesslogic.BusinessSession)
-	err := bs.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
+	statusCode, err := bs.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -155,7 +155,7 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return answer
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(statusCode)
 	_, err = w.Write([]byte("<h1>Loaded order code </h1>" + ordercode))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())

@@ -66,32 +66,32 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 	return nil
 }
 
-func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
+func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err error) {
 
 	config.LoggerCLS.Debug(fmt.Sprintf("user %v load order number %v", ulogin, oc))
 
 	// check Luhn algoritm
 	if !checkdigit.NewLuhn().Verify(oc) {
-		return errors.New("order number is not valid by Luhn alogoritm: " + oc)
+		return 400, errors.New("order number is not valid by Luhn alogoritm: " + oc)
 	}
 
 	// check user exist?
 	db, err := storage.GORMinterface.GetDB()
 
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	var user storage.User
 	tx := db.First(&user, "login = ?", ulogin)
 	if tx.Error != nil {
-		return tx.Error
+		return 500, tx.Error
 	}
 
 	// register order in accrual
 	err = (&(accrualclient.Accrual{Address: config.ConfigCLS.AccrualSystemAddress})).RegisterOrder(oc)
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	// save order in database
@@ -105,10 +105,10 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
 
 	tx = db.Create(&order)
 	if tx.Error != nil {
-		return tx.Error
+		return 500, tx.Error
 	}
 
-	return nil
+	return 202, nil
 }
 
 func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
