@@ -414,41 +414,41 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 
 func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {
 
-	config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v", uid))
-	// select all orders with not final statuses
-	db, err := storage.GORMinterface.GetDB()
-	if err != nil {
-		return err
-	}
+	// config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v", uid))
+	// // select all orders with not final statuses
+	// db, err := storage.GORMinterface.GetDB()
+	// if err != nil {
+	// 	return err
+	// }
 
-	orders := make([]storage.Order, 0)
+	// orders := make([]storage.Order, 0)
 
-	tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
-	if tx.Error != nil {
-		return tx.Error
-	}
-	config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v orders:%v", uid, orders))
+	// tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
+	// if tx.Error != nil {
+	// 	return tx.Error
+	// }
+	// config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v orders:%v", uid, orders))
 
-	// check statuses and sums from accrual and update CLS DB
-	var status string
-	var accrual float32
+	// // check statuses and sums from accrual and update CLS DB
+	// var status string
+	// var accrual float32
 
-	for i := 0; i < len(orders); i++ {
+	// for i := 0; i < len(orders); i++ {
 
-		status, accrual, err = (&(accrualclient.Accrual{
-			Address: config.ConfigCLS.AccrualSystemAddress,
-		})).GetOrderStatus(orders[i].OrderNumber)
-		if err != nil {
-			return err
-		}
+	// 	status, accrual, err = (&(accrualclient.Accrual{
+	// 		Address: config.ConfigCLS.AccrualSystemAddress,
+	// 	})).GetOrderStatus(orders[i].OrderNumber)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		orders[i].Accrual = accrual
-		orders[i].Status = status
-		tx = db.Save(&orders[i])
-		if tx.Error != nil {
-			return tx.Error
-		}
-	}
+	// 	orders[i].Accrual = accrual
+	// 	orders[i].Status = status
+	// 	tx = db.Save(&orders[i])
+	// 	if tx.Error != nil {
+	// 		return tx.Error
+	// 	}
+	// }
 
 	return nil
 }
