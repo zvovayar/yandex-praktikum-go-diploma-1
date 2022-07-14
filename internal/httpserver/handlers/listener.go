@@ -36,7 +36,7 @@ func GoListenRutine() {
 		// GET requests
 		r.Get("/api/user/orders", GetUserOrders)
 		r.Get("/api/user/balance", GetUserBalance)
-		r.Get("/api/user/balance/withdrawals", GetUserBalanceWithdrawals)
+		r.Get("/api/user/withdrawals", GetUserBalanceWithdrawals)
 
 		// POST requests
 		r.Post("/", http.NotFound)
