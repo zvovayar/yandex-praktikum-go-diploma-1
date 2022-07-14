@@ -6,6 +6,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/businesslogic"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/handlers"
 )
@@ -39,6 +40,9 @@ func main() {
 	handlers.GoListenRutine()
 	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
 
+	bs := new(businesslogic.BusinessSession)
+	bs.UpdateAllOrdersFromAccrual(time.Second * 30)
+	config.LoggerCLS.Info("CLS server update order statuses started")
 	// wait signals
 	// we need to reserve to buffer size 1, so the notifier are not blocked
 	chanOS := make(chan os.Signal, 1)

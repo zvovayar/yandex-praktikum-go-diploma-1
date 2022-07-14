@@ -452,3 +452,51 @@ func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {
 
 	return nil
 }
+
+func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err error) {
+
+	config.LoggerCLS.Debug("update all ordres statuses")
+	// select all orders with not final statuses
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return err
+	}
+
+	orders := make([]storage.Order, 0)
+
+	go func() {
+		for {
+			tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
+			if tx.Error != nil {
+				return
+			}
+			if len(orders) > 0 {
+				config.LoggerCLS.Debug(fmt.Sprintf("update all ordres statuses orders:%v", orders))
+			}
+			// check statuses and sums from accrual and update CLS DB
+			var status string
+			var accrual float32
+
+			for i := 0; i < len(orders); i++ {
+
+				status, accrual, err = (&(accrualclient.Accrual{
+					Address: config.ConfigCLS.AccrualSystemAddress,
+				})).GetOrderStatus(orders[i].OrderNumber)
+				if err != nil {
+					return
+				}
+
+				orders[i].Accrual = accrual
+				orders[i].Status = status
+				tx = db.Save(&orders[i])
+				if tx.Error != nil {
+					return
+				}
+
+			}
+			<-time.After(dur)
+		}
+	}()
+
+	return nil
+}
