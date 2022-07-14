@@ -35,7 +35,7 @@ func GoListenRutine() {
 
 		claims := make(map[string]interface{})
 		claims["user_id"] = 123
-		claims["exp"] = jwtauth.ExpireIn(time.Second * 60)
+		claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimountMinutes))
 		_, tokenString, _ := TokenAuth.Encode(claims)
 
 		config.LoggerCLS.Sugar().Debug("for debug only! sample jwt fjr user 123 is %s\n\n", tokenString)

@@ -37,7 +37,13 @@ func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 		return nil, fmt.Errorf("can,t open database postgres: " + err.Error())
 	}
 
-	err = sdbp.db.AutoMigrate(&User{})
+	err = sdbp.db.AutoMigrate(
+		&User{},
+		&Order{},
+		&OrderLog{},
+		&Withdraw{},
+		&WithdrawLog{})
+
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		return nil, fmt.Errorf("can,t migrate User database postgres: " + err.Error())

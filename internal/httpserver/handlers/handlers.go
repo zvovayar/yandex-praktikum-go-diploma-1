@@ -59,7 +59,7 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 
 	claims := make(map[string]interface{})
 	claims["user_id"] = newuser.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * 60)
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimountMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("claims=%v", claims)
 
@@ -106,7 +106,7 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 	// return answer
 	claims := make(map[string]interface{})
 	claims["user_id"] = user.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * 60)
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimountMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("user logged in claims=%v", claims)
 
@@ -140,9 +140,13 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 	ordercode = string(b[:n])
 	config.LoggerCLS.Sugar().Debugf("body=%v ordercode=%v", b[:n], ordercode)
 
+	// decode climes from JWT
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
+
 	// call business logic
 	bs := new(businesslogic.BusinessSession)
-	err := bs.LoadOrder(ordercode)
+	err := bs.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

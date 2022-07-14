@@ -2,6 +2,7 @@ package businesslogic
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
@@ -55,11 +56,44 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 	return nil
 }
 
-func (bs *BusinessSession) LoadOrder(oc string) (err error) {
-	config.LoggerCLS.Debug("load order " + oc)
+func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (err error) {
 
+	config.LoggerCLS.Debug(fmt.Sprintf("user %v load order number %v", ulogin, oc))
+
+	// check user exist?
+	db, err := storage.GORMinterface.GetDB()
+
+	if err != nil {
+		return err
+	}
+
+	var user storage.User
+	tx := db.First(&user, "login = ?", ulogin)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// register order in accrual
 	err = (&(accrualclient.Accrual{Address: config.ConfigCLS.AccrualSystemAddress})).RegisterOrder(oc)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// save order in database
+	order := storage.Order{
+		// Model:       gorm.Model{},
+		OrderNumber: oc,
+		// Accrual:     0,
+		UserID: user.ID,
+		// Status:      "",
+	}
+
+	tx = db.Create(&order)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
 }
 
 func (bs *BusinessSession) GetOrders() (json string, err error) {
