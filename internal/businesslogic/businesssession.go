@@ -140,10 +140,10 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	}
 
 	// update orders from accrual
-	err = bs.UpdateOrdersFromAccrual(user.ID)
-	if err != nil {
-		return []byte(""), err
-	}
+	// err = bs.UpdateOrdersFromAccrual(user.ID)
+	// if err != nil {
+	// 	return []byte(""), err
+	// }
 
 	// select order numbers for userid
 	var orders []storage.Order
