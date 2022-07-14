@@ -334,18 +334,59 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err erro
 	return nil
 }
 
-func (bs *BusinessSession) GetWithdrawals() (json string, err error) {
-	config.LoggerCLS.Debug("read withdrawals balance and make json ")
+func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err error) {
 
-	json = `[
-		{
-			"order": "2377225624",
-			"sum": 500,
-			"processed_at": "2020-12-09T16:09:57+03:00"
-		}
-	]`
+	config.LoggerCLS.Debug("get withdrawals and make json for user: " + ulogin)
 
-	return json, nil
+	// check user exist?
+	db, err := storage.GORMinterface.GetDB()
+	if err != nil {
+		return []byte(""), err
+	}
+	var user storage.User
+	tx := db.First(&user, "login = ?", ulogin)
+	if tx.Error != nil {
+		return []byte(""), tx.Error
+	}
+
+	// select all withdrawals for user
+	var withdrawals []storage.Withdraw
+	tx = db.Order("created_at").Find(&withdrawals, "user_id = ?", user.ID)
+	if tx.Error != nil {
+		return []byte(""), tx.Error
+	}
+
+	config.LoggerCLS.Sugar().Debugf("withdrawals in CLS dtabase fo user:%v are:%v", ulogin, withdrawals)
+
+	type WithdrawForJSON struct {
+		Order       string    `json:"order"`
+		Sum         float32   `json:"sum"`
+		ProcessedAt time.Time `json:"processed_at"`
+	}
+
+	var withdrawalsForJSON []WithdrawForJSON
+	withdrawalsForJSON = make([]WithdrawForJSON, 0)
+
+	for i := 0; i < len(withdrawals); i++ {
+
+		withdrawalsForJSON = append(withdrawalsForJSON, (WithdrawForJSON{
+			Order:       withdrawals[i].OrderNumber,
+			Sum:         withdrawals[i].AccrualWithdraw,
+			ProcessedAt: withdrawals[i].CreatedAt,
+		}))
+	}
+
+	config.LoggerCLS.Sugar().Debugf("withdrawals in CLS DB for user:%v are:%v",
+		ulogin, withdrawalsForJSON)
+
+	// make JSON
+	jsonb, err = json.Marshal(withdrawalsForJSON)
+	if err != nil {
+		return []byte(""), err
+	}
+	config.LoggerCLS.Sugar().Debugf("json withdrawals in CLS DB for user:%v are:%v",
+		ulogin, string(jsonb))
+	return jsonb, nil
 }
 
 func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {

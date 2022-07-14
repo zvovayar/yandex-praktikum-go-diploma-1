@@ -277,8 +277,12 @@ func GetUserBalanceWithdrawals(w http.ResponseWriter, r *http.Request) {
 	// Факты выводов в выдаче должны быть отсортированы по времени вывода от самых старых к самым новым
 	//
 
+	// decode climes from JWT
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
+
 	bs := new(businesslogic.BusinessSession)
-	json, err := bs.GetWithdrawals()
+	json, err := bs.GetWithdrawals(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())

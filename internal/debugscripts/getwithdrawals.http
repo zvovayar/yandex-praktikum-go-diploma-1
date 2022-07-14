@@ -1,1 +1,2 @@
-GET http://localhost:7777/api/user/balance/withdraw/ HTTP/1.1
+GET http://localhost:7777/api/user/balance/withdrawals HTTP/1.1
+Authorization: BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc4NTUxODMsInVzZXJfaWQiOiLQktCw0YHRjzExIn0.UvFTiJ_Vf0q7CYxEp5a-CKcBg267YiyNAnKPztr0TK8
