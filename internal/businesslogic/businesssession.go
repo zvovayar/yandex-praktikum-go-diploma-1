@@ -109,7 +109,7 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 		if strings.Contains(tx.Error.Error(), "duplicate key value violates unique constraint") {
 
 			var order storage.Order
-			tx := db.First(&order, "user_id = ?", user.ID)
+			tx := db.First(&order, "order_number = ?", oc)
 			if tx.Error != nil {
 				return 500, tx.Error
 			}
