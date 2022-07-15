@@ -6,12 +6,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/businesslogic"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 )
 
 var TokenAuth *jwtauth.JWTAuth
+var BusinessSession businesslogic.BusinessSession
 
-func GoListenRutine() {
+func GoListenRutine(bs businesslogic.BusinessSession) {
+
+	BusinessSession = bs
 	// маршрутизация запросов обработчику
 	r := chi.NewRouter()
 

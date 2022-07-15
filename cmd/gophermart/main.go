@@ -36,11 +36,13 @@ func main() {
 	//
 	// run http server
 	//
-	handlers.GoListenRutine()
+	bs := new(businesslogic.BusinessSession)
+	bs.AccrualClient.Address = config.ConfigCLS.AccrualSystemAddress
+
+	handlers.GoListenRutine(*bs)
 	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
 
 	// run update orders statuses queue
-	bs := new(businesslogic.BusinessSession)
 	bs.UpdateAllOrdersFromAccrual(time.Second * 1)
 
 	config.LoggerCLS.Info("CLS server update order statuses started")

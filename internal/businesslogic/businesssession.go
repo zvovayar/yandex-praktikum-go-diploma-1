@@ -10,12 +10,11 @@ import (
 	"github.com/osamingo/checkdigit"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/accrualclient"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
-	httpcs "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/httpserver/sessions"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
 )
 
 type BusinessSession struct {
-	HTTPsession httpcs.CurrentSession
+	AccrualClient accrualclient.Accrual
 }
 
 type OrderForJSON struct {
@@ -24,8 +23,6 @@ type OrderForJSON struct {
 	Accrual    float32   `json:"accrual"`
 	UploadedAt time.Time `json:"uploaded_at"`
 }
-
-var AccrualClient accrualclient.Accrual
 
 func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
 
@@ -92,7 +89,7 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 	}
 
 	// register order in accrual
-	err = AccrualClient.RegisterOrder(oc)
+	err = bs.AccrualClient.RegisterOrder(oc)
 	if err != nil {
 		return 500, err
 	}
@@ -399,7 +396,7 @@ func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err er
 
 			for i := 0; i < len(orders); i++ {
 
-				status, accrual, err = AccrualClient.GetOrderStatus(orders[i].OrderNumber)
+				status, accrual, err = bs.AccrualClient.GetOrderStatus(orders[i].OrderNumber)
 				if err != nil {
 					return
 				}
@@ -417,8 +414,4 @@ func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err er
 	}()
 
 	return nil
-}
-
-func init() {
-	AccrualClient.Address = config.ConfigCLS.AccrualSystemAddress
 }

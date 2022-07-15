@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/businesslogic"
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
 	"github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/storage"
 )
@@ -46,8 +45,7 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("newuser=%v", newuser)
 
 	// call business logic
-	bs := new(businesslogic.BusinessSession)
-	err := bs.RegisterNewUser(newuser)
+	err := BusinessSession.RegisterNewUser(newuser)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,8 +92,7 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("user=%v", user)
 
 	// call business logic
-	bs := new(businesslogic.BusinessSession)
-	err := bs.UserLogin(user)
+	err := BusinessSession.UserLogin(user)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -145,8 +142,7 @@ func PostUserOrders(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
 	// call business logic
-	bs := new(businesslogic.BusinessSession)
-	statusCode, err := bs.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
+	statusCode, err := BusinessSession.LoadOrder(ordercode, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(statusCode)
@@ -176,8 +172,7 @@ func GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
-	bs := new(businesslogic.BusinessSession)
-	json, err := bs.GetOrders(fmt.Sprintf("%v", claims["user_id"]))
+	json, err := BusinessSession.GetOrders(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
@@ -209,8 +204,7 @@ func GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
-	bs := new(businesslogic.BusinessSession)
-	jsonb, err := bs.GetBalance(fmt.Sprintf("%v", claims["user_id"]))
+	jsonb, err := BusinessSession.GetBalance(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
@@ -253,8 +247,7 @@ func PostUserBalanceWithdraw(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
 	// call business logic
-	bs := new(businesslogic.BusinessSession)
-	err := bs.Withdraw(withdraw, fmt.Sprintf("%v", claims["user_id"]))
+	err := BusinessSession.Withdraw(withdraw, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -281,8 +274,7 @@ func GetUserBalanceWithdrawals(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
-	bs := new(businesslogic.BusinessSession)
-	json, err := bs.GetWithdrawals(fmt.Sprintf("%v", claims["user_id"]))
+	json, err := BusinessSession.GetWithdrawals(fmt.Sprintf("%v", claims["user_id"]))
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
