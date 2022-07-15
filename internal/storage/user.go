@@ -14,7 +14,52 @@ type User struct {
 }
 
 // TODO: User's functions
-func (u *User) GetBalance() (err error) { return nil }
+func (u *User) GetBalance() (sumOrders float32, sumWithdraws float32, status string, err error) {
+
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return 0, 0, "DBerror", err
+	}
+
+	// sum accrual in orders - sum withdrawals
+
+	var count int64
+	tx := db.Model(&Order{}).Where("user_id = ?", u.ID).Count(&count)
+	if tx.Error != nil {
+		return 0, 0, "DBerror", tx.Error
+	}
+
+	if count == 0 {
+		sumOrders = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual) FROM gorm_orders WHERE user_id = ?",
+			u.ID).Scan(&sumOrders)
+		if tx.RowsAffected == 0 {
+			sumOrders = 0
+		} else if tx.Error != nil {
+			return 0, 0, "DBerror", tx.Error
+		}
+	}
+
+	tx = db.Model(&Withdraw{}).Where("user_id = ?", u.ID).Count(&count)
+	if tx.Error != nil {
+		return 0, 0, "DBerror", tx.Error
+	}
+
+	if count == 0 {
+		sumWithdraws = 0
+	} else {
+		tx = db.Raw("SELECT SUM(accrual_withdraw) FROM gorm_withdraws WHERE user_id = ?",
+			u.ID).Scan(&sumWithdraws)
+		if tx.RowsAffected == 0 {
+			sumWithdraws = 0
+		} else if tx.Error != nil {
+			return 0, 0, "DBerror", tx.Error
+		}
+	}
+
+	return sumOrders, sumWithdraws, "OK", nil
+}
 
 func (u *User) CheckNewAndSave() (status string, err error) {
 

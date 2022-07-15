@@ -179,36 +179,13 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	}
 
 	// check balance
-	// sum accrual in orders - sum withdrawals
-	var count int64
-	db.Model(&storage.Order{}).Where("user_id = ?", user.ID).Count(&count)
-	var sumOrders float32
-	if count == 0 {
-		sumOrders = 0
-	} else {
-		tx = db.Raw("SELECT SUM(accrual) FROM gorm_orders WHERE user_id = ?",
-			user.ID).Scan(&sumOrders)
-		if tx.RowsAffected == 0 {
-			sumOrders = 0
-		} else if tx.Error != nil {
-			return []byte(""), tx.Error
-		}
+
+	sumOrders, sumWithdraws, status, err := user.GetBalance()
+	if status != "OK" {
+		return []byte(""), err
 	}
 
-	db.Model(&storage.Withdraw{}).Where("user_id = ?", user.ID).Count(&count)
-	var sumWithdraws float32
-	if count == 0 {
-		sumWithdraws = 0
-	} else {
-		tx = db.Raw("SELECT SUM(accrual_withdraw) FROM gorm_withdraws WHERE user_id = ?",
-			user.ID).Scan(&sumWithdraws)
-		if tx.RowsAffected == 0 {
-			sumWithdraws = 0
-		} else if tx.Error != nil {
-			return []byte(""), tx.Error
-		}
-	}
-
+	// make JSON
 	type Balance struct {
 		Current   float32 `json:"current"`
 		Withdrawn float32 `json:"withdrawn"`
