@@ -23,25 +23,24 @@ type OrderForJSON struct {
 	UploadedAt time.Time `json:"uploaded_at"`
 }
 
-func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
+func (bs *BusinessSession) RegisterNewUser(u storage.User) (status int, err error) {
 
 	config.LoggerCLS.Debug("register new user " + u.Login)
 
-	db, err := storage.GORMinterface.GetDB()
+	st, err := u.CheckNewAndSave()
 
-	if err != nil {
-		return err
+	switch st {
+	case "DBerror":
+		return 500, err
+	case "LoginBusy":
+		return 409, err
+	case "OKregistered":
+		return 200, nil
+	default:
+		return 500, errors.New("unknown status returned by user saver")
 	}
-
-	tx := db.Create(&u)
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	config.LoggerCLS.Sugar().Debugf("new user registered successfuly: %v", u)
-
-	return nil
 }
+
 func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 
 	config.LoggerCLS.Debug("login user " + u.Login)

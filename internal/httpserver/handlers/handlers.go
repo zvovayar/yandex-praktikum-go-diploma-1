@@ -45,10 +45,10 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("newuser=%v", newuser)
 
 	// call business logic
-	err := BusinessSession.RegisterNewUser(newuser)
+	status, err := BusinessSession.RegisterNewUser(newuser)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(status)
 		_, _ = w.Write([]byte("<h1>Fail create new user </h1>" + newuser.Login))
 		return
 	}
@@ -66,7 +66,7 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = w.Write([]byte("user registered: " + newuser.Login))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
