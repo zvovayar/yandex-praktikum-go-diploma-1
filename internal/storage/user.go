@@ -57,6 +57,8 @@ func (u *User) GetBalance() (sumOrders float32, sumWithdraws float32, status str
 		}
 	}
 
+	config.LoggerCLS.Sugar().Debugf("get balance fo user:%v sumOrders:%v sumWithdraws:%v",
+		u.Login, sumOrders, sumWithdraws)
 	return sumOrders, sumWithdraws, "OK", nil
 }
 
