@@ -257,11 +257,9 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (status i
 	// check balance
 	// sum accrual in orders - sum withdrawals
 	// save order in database
-	var withdraw storage.Withdraw
-	withdraw.OrderNumber = w.OrderNumber
 
 	var st string
-	st, err = withdraw.CheckNewAndSave(user.ID)
+	st, err = w.CheckNewAndSave(user.ID)
 
 	switch st {
 	case "DBerror":
