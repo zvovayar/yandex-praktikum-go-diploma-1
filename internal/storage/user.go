@@ -13,7 +13,6 @@ type User struct {
 	PasswdHash string `json:"password" gorm:"password"`
 }
 
-// TODO: User's functions
 func (u *User) GetBalance() (sumOrders float32, sumWithdraws float32, status string, err error) {
 
 	db, err := GORMinterface.GetDB()
