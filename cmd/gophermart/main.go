@@ -13,7 +13,6 @@ import (
 
 func main() {
 	//
-	// TODO:
 	// init service
 	// load config service
 	// run main gorutines
@@ -31,7 +30,7 @@ func main() {
 	config.LoggerCLS.Info("CLS server start")
 
 	//
-	// TODO: run main gorutines
+	// run main gorutines
 	//
 
 	//
@@ -40,8 +39,10 @@ func main() {
 	handlers.GoListenRutine()
 	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
 
+	// run update orders statuses queue
 	bs := new(businesslogic.BusinessSession)
 	bs.UpdateAllOrdersFromAccrual(time.Second * 1)
+
 	config.LoggerCLS.Info("CLS server update order statuses started")
 	// wait signals
 	// we need to reserve to buffer size 1, so the notifier are not blocked

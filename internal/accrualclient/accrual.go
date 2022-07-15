@@ -13,17 +13,11 @@ type Accrual struct {
 	Address string
 }
 
-//
-// TODO: add JSON and SQL descriptions
-//
 type Order struct {
 	OrderNumber string `json:"order"`
 	Goods       []Good `json:"goods"`
 }
 
-//
-// TODO: add JSON and SQL descriptions
-//
 type Good struct {
 	Description string  `json:"description"`
 	Price       float32 `json:"price"`
@@ -32,7 +26,7 @@ type Good struct {
 func (a *Accrual) RegisterOrder(oid string) (err error) {
 
 	//
-	// TODO: call POST /api/orders
+	// call POST /api/orders
 	// description: good name and price randomly
 	//
 
@@ -86,7 +80,7 @@ func (a *Accrual) RegisterOrder(oid string) (err error) {
 
 func (a *Accrual) GetOrderStatus(onumber string) (status string, accrual float32, err error) {
 	//
-	// TODO: call GET /api/orders/{number}
+	// call GET /api/orders/{number}
 	//
 
 	config.LoggerCLS.Sugar().Debugf("get order status order=%v", onumber)

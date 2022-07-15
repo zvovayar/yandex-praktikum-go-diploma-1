@@ -297,7 +297,7 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err erro
 	}
 	w.UserID = user.ID
 
-	// TODO: check is this order not registered?
+	// check is this order not registered?
 
 	// update orders from accrual
 	err = bs.UpdateOrdersFromAccrual(user.ID)

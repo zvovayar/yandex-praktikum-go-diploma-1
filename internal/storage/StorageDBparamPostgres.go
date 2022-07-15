@@ -18,7 +18,7 @@ type StorageDBparamPostgres struct {
 var GORMinterface StorageDBparamPostgres
 
 //
-// TODO: realize interface StorageDBparam
+// realize interface StorageDBparam
 //
 func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 	if sdbp.db != nil {

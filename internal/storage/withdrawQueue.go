@@ -6,9 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//
-// TODO: add JSON and SQL specification
-//
 type WithdrawQueue struct {
 	gorm.Model
 	OrderNumber    string `gorm:"unique"`

@@ -17,7 +17,7 @@ type Config struct {
 	DataBaseURI          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	DebugLogger          string
-	TokenTimountMinutes  uint
+	TokenTimoutMinutes   uint
 }
 
 func (c *Config) LoadConfig() (err error) {
@@ -33,7 +33,7 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.DataBaseURI = ""
 	ConfigCLS.AccrualSystemAddress = "localhost:8080"
 	ConfigCLS.DebugLogger = "+"
-	ConfigCLS.TokenTimountMinutes = 600
+	ConfigCLS.TokenTimoutMinutes = 600
 
 	// load flags
 	cflags := new(Config)
