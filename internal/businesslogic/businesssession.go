@@ -25,6 +25,8 @@ type OrderForJSON struct {
 	UploadedAt time.Time `json:"uploaded_at"`
 }
 
+var AccrualClient accrualclient.Accrual
+
 func (bs *BusinessSession) RegisterNewUser(u storage.User) (err error) {
 
 	config.LoggerCLS.Debug("register new user " + u.Login)
@@ -90,7 +92,7 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 	}
 
 	// register order in accrual
-	err = (&(accrualclient.Accrual{Address: config.ConfigCLS.AccrualSystemAddress})).RegisterOrder(oc)
+	err = AccrualClient.RegisterOrder(oc)
 	if err != nil {
 		return 500, err
 	}
@@ -397,9 +399,7 @@ func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err er
 
 			for i := 0; i < len(orders); i++ {
 
-				status, accrual, err = (&(accrualclient.Accrual{
-					Address: config.ConfigCLS.AccrualSystemAddress,
-				})).GetOrderStatus(orders[i].OrderNumber)
+				status, accrual, err = AccrualClient.GetOrderStatus(orders[i].OrderNumber)
 				if err != nil {
 					return
 				}
@@ -417,4 +417,8 @@ func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err er
 	}()
 
 	return nil
+}
+
+func init() {
+	AccrualClient.Address = config.ConfigCLS.AccrualSystemAddress
 }
