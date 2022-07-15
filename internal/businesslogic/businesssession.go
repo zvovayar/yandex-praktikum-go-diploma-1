@@ -234,77 +234,46 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	return jsonb, nil
 }
 
-func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err error) {
+func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (status int, err error) {
 
 	config.LoggerCLS.Debug(fmt.Sprintf("for user: %v withdraw register: %v ", ulogin, w))
 
 	// check Luhn algoritm
 	if !checkdigit.NewLuhn().Verify(w.OrderNumber) {
-		return errors.New("order number is not valid by Luhn alogoritm: " + w.OrderNumber)
+		return 422, errors.New("order number is not valid by Luhn alogoritm: " + w.OrderNumber)
 	}
 	// check user exist?
 	db, err := storage.GORMinterface.GetDB()
 	if err != nil {
-		return err
+		return 500, err
 	}
 	var user storage.User
 	tx := db.First(&user, "login = ?", ulogin)
 	if tx.Error != nil {
-		return tx.Error
+		return 500, tx.Error
 	}
 	w.UserID = user.ID
 
-	// check is this order not registered?
-
 	// check balance
 	// sum accrual in orders - sum withdrawals
-	var count int64
-	db.Model(&storage.Order{}).Where("user_id = ?", user.ID).Count(&count)
-	var sumOrders float32
-	if count == 0 {
-		sumOrders = 0
-	} else {
-		tx = db.Raw("SELECT SUM(accrual) FROM gorm_orders WHERE user_id = ?",
-			user.ID).Scan(&sumOrders)
-		if tx.RowsAffected == 0 {
-			sumOrders = 0
-		} else if tx.Error != nil {
-			return tx.Error
-		}
+	// save order in database
+	var withdraw storage.Withdraw
+	withdraw.OrderNumber = w.OrderNumber
+
+	var st string
+	st, err = withdraw.CheckNewAndSave(user.ID)
+
+	switch st {
+	case "DBerror":
+		return 500, err
+	case "OKRegistered":
+		return 200, nil
+	case "Few":
+		return 402, err
+	default:
+		return 500, errors.New("unknown status returned by withdraw saver")
 	}
 
-	db.Model(&storage.Withdraw{}).Where("user_id = ?", user.ID).Count(&count)
-	var sumWithdraws float32
-	if count == 0 {
-		sumWithdraws = 0
-	} else {
-		tx = db.Raw("SELECT SUM(accrual_withdraw) FROM gorm_withdraws WHERE user_id = ?",
-			user.ID).Scan(&sumWithdraws)
-		if tx.RowsAffected == 0 {
-			sumWithdraws = 0
-		} else if tx.Error != nil {
-			return tx.Error
-		}
-	}
-
-	// if balance to small return error
-	if w.AccrualWithdraw > sumOrders-sumWithdraws {
-		return fmt.Errorf("w.AccrualWithdraw=%v > sumOrders=%v - sumWithdraws=%v",
-			w.AccrualWithdraw, sumOrders, sumWithdraws)
-	}
-
-	// all is OK register withdraw
-	config.LoggerCLS.Debug(fmt.Sprintf("w.AccrualWithdraw=%v, sumOrders=%v, sumWithdraws=%v",
-		w.AccrualWithdraw, sumOrders, sumWithdraws))
-
-	tx = db.Create(&w)
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	config.LoggerCLS.Sugar().Debugf("new withdraw registered successfuly: %v", w)
-
-	return nil
 }
 
 func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err error) {
@@ -362,7 +331,7 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	return jsonb, nil
 }
 
-func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err error) {
+func (bs *BusinessSession) InfinityUpdateAllOrdersFromAccrual(dur time.Duration) (err error) {
 
 	config.LoggerCLS.Debug("update all ordres statuses")
 	// select all orders with not final statuses

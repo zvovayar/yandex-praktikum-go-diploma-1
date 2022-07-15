@@ -43,7 +43,7 @@ func main() {
 	config.LoggerCLS.Info("CLS server http listener started on " + config.ConfigCLS.RunAddress)
 
 	// run update orders statuses queue
-	bs.UpdateAllOrdersFromAccrual(time.Second * 1)
+	bs.InfinityUpdateAllOrdersFromAccrual(time.Second * 1)
 
 	config.LoggerCLS.Info("CLS server update order statuses started")
 	// wait signals

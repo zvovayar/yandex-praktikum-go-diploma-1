@@ -247,16 +247,16 @@ func PostUserBalanceWithdraw(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Debug(fmt.Sprintf("JWT for user %v recieved", claims["user_id"]))
 
 	// call business logic
-	err := BusinessSession.Withdraw(withdraw, fmt.Sprintf("%v", claims["user_id"]))
+	status, err := BusinessSession.Withdraw(withdraw, fmt.Sprintf("%v", claims["user_id"]))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(status)
 		_, _ = w.Write([]byte("<h1>Fail withdraw </h1>"))
 		return
 	}
 
 	// return answer
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = w.Write([]byte("<h1>Withdraw registered </h1>"))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
