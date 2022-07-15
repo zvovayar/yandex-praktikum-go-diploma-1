@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/osamingo/checkdigit"
@@ -95,30 +94,24 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 	}
 
 	// save order in database
-	order := storage.Order{
-		OrderNumber: oc,
-		UserID:      user.ID,
-		Status:      "NEW",
+	var order storage.Order
+	order.OrderNumber = oc
+
+	var st string
+	st, err = order.CheckNewAndSave(user.ID)
+
+	switch st {
+	case "DBerror":
+		return 500, err
+	case "OKloaded":
+		return 200, nil
+	case "LoadOtherUser":
+		return 409, err
+	case "OKnew":
+		return 202, nil
+	default:
+		return 500, errors.New("unknown status returned by order saver")
 	}
-
-	tx = db.Create(&order)
-	if tx.Error != nil {
-		if strings.Contains(tx.Error.Error(), "duplicate key value violates unique constraint") {
-
-			var order storage.Order
-			tx := db.First(&order, "order_number = ?", oc)
-			if tx.Error != nil {
-				return 500, tx.Error
-			}
-			if order.UserID == user.ID {
-				return 200, nil
-			}
-			return 409, errors.New("order number " + oc + " was loaded by other user")
-		}
-		return 500, tx.Error
-	}
-
-	return 202, nil
 }
 
 func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
@@ -304,7 +297,6 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err erro
 	config.LoggerCLS.Debug(fmt.Sprintf("w.AccrualWithdraw=%v, sumOrders=%v, sumWithdraws=%v",
 		w.AccrualWithdraw, sumOrders, sumWithdraws))
 
-	w.UserID = user.ID
 	tx = db.Create(&w)
 	if tx.Error != nil {
 		return tx.Error
