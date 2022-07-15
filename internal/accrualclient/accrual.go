@@ -121,11 +121,6 @@ func (a *Accrual) GetOrderStatus(onumber string) (status string, accrual float32
 	}
 
 	var orderFromAccrual OrderFromAccrual
-	// b := make([]byte, 10000)
-
-	// decode orderstring
-	// n, _ := resp.Body.Read(b)
-	// config.LoggerCLS.Debug(fmt.Sprintf("body size:%d returned from accrual:%v", n, string(b)))
 
 	if err := json.NewDecoder(resp.Body).Decode(&orderFromAccrual); err != nil {
 		config.LoggerCLS.Sugar().Error(err.Error())

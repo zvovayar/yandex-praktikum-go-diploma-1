@@ -97,11 +97,9 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 
 	// save order in database
 	order := storage.Order{
-		// Model:       gorm.Model{},
 		OrderNumber: oc,
-		// Accrual:     0,
-		UserID: user.ID,
-		Status: "NEW",
+		UserID:      user.ID,
+		Status:      "NEW",
 	}
 
 	tx = db.Create(&order)
@@ -114,11 +112,6 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 				return 500, tx.Error
 			}
 			if order.UserID == user.ID {
-				// update orders from accrual
-				err = bs.UpdateOrdersFromAccrual(user.ID)
-				if err != nil {
-					return 500, err
-				}
 				return 200, nil
 			}
 			return 409, errors.New("order number " + oc + " was loaded by other user")
@@ -126,11 +119,6 @@ func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err 
 		return 500, tx.Error
 	}
 
-	// update orders from accrual
-	err = bs.UpdateOrdersFromAccrual(user.ID)
-	if err != nil {
-		return 500, err
-	}
 	return 202, nil
 }
 
@@ -149,12 +137,6 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 		return []byte(""), tx.Error
 	}
 
-	// update orders from accrual
-	err = bs.UpdateOrdersFromAccrual(user.ID)
-	if err != nil {
-		return []byte(""), err
-	}
-
 	// select order numbers for userid
 	var orders []storage.Order
 	tx = db.Find(&orders, "user_id = ?", user.ID)
@@ -164,26 +146,15 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 
 	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase fo user:%v are:%v", ulogin, orders)
 
-	// get accrual statuses for orders from CLS database
-	// var status string
-	// var accrual float32
-
 	var ordersForJSON []OrderForJSON
 	ordersForJSON = make([]OrderForJSON, 0)
 
 	for i := 0; i < len(orders); i++ {
 
-		// status, accrual, err = (&(accrualclient.Accrual{
-		// 	Address: config.ConfigCLS.AccrualSystemAddress,
-		// })).GetOrderStatus(orders[i].OrderNumber)
-		// if err != nil {
-		// 	return []byte(""), err
-		// }
-
 		ordersForJSON = append(ordersForJSON, (OrderForJSON{
 			Number:     orders[i].OrderNumber,
-			Status:     orders[i].Status,  //status,
-			Accrual:    orders[i].Accrual, //accrual,
+			Status:     orders[i].Status,
+			Accrual:    orders[i].Accrual,
 			UploadedAt: orders[i].CreatedAt,
 		}))
 	}
@@ -214,12 +185,6 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	tx := db.First(&user, "login = ?", ulogin)
 	if tx.Error != nil {
 		return []byte(""), tx.Error
-	}
-
-	// update orders from accrual
-	err = bs.UpdateOrdersFromAccrual(user.ID)
-	if err != nil {
-		return []byte(""), err
 	}
 
 	// check balance
@@ -298,12 +263,6 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (err erro
 	w.UserID = user.ID
 
 	// check is this order not registered?
-
-	// update orders from accrual
-	err = bs.UpdateOrdersFromAccrual(user.ID)
-	if err != nil {
-		return err
-	}
 
 	// check balance
 	// sum accrual in orders - sum withdrawals
@@ -410,47 +369,6 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	config.LoggerCLS.Sugar().Debugf("json withdrawals in CLS DB for user:%v are:%v",
 		ulogin, string(jsonb))
 	return jsonb, nil
-}
-
-func (bs *BusinessSession) UpdateOrdersFromAccrual(uid uint) (err error) {
-
-	// config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v", uid))
-	// // select all orders with not final statuses
-	// db, err := storage.GORMinterface.GetDB()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// orders := make([]storage.Order, 0)
-
-	// tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
-	// if tx.Error != nil {
-	// 	return tx.Error
-	// }
-	// config.LoggerCLS.Debug(fmt.Sprintf("update ordres statuses for userID: %v orders:%v", uid, orders))
-
-	// // check statuses and sums from accrual and update CLS DB
-	// var status string
-	// var accrual float32
-
-	// for i := 0; i < len(orders); i++ {
-
-	// 	status, accrual, err = (&(accrualclient.Accrual{
-	// 		Address: config.ConfigCLS.AccrualSystemAddress,
-	// 	})).GetOrderStatus(orders[i].OrderNumber)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	orders[i].Accrual = accrual
-	// 	orders[i].Status = status
-	// 	tx = db.Save(&orders[i])
-	// 	if tx.Error != nil {
-	// 		return tx.Error
-	// 	}
-	// }
-
-	return nil
 }
 
 func (bs *BusinessSession) UpdateAllOrdersFromAccrual(dur time.Duration) (err error) {
