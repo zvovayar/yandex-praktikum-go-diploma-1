@@ -1,6 +1,7 @@
 package businesslogic
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,6 +28,8 @@ func (bs *BusinessSession) RegisterNewUser(u storage.User) (status int, err erro
 
 	config.LoggerCLS.Debug("register new user " + u.Login)
 
+	u.PasswdHash = fmt.Sprintf("%x",
+		sha256.Sum256([]byte(u.PasswdHash)))
 	st, err := u.CheckNewAndSave()
 
 	switch st {
@@ -57,7 +60,8 @@ func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
 		return tx.Error
 	}
 
-	if user.PasswdHash != u.PasswdHash {
+	if user.PasswdHash != fmt.Sprintf("%x",
+		sha256.Sum256([]byte(u.PasswdHash))) {
 		return errors.New("password failed")
 	}
 
