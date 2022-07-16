@@ -20,6 +20,7 @@ type Config struct {
 	DebugLogger          string        `env:"DEBUG_LOGGER_SWITCH"`
 	TokenTimeoutMinutes  uint          `env:"TOKEN_TIMEOUTS_MINUTES"`
 	AccrualCheckInterval time.Duration `env:"ACCRUAL_CHECK_INTERVAL"`
+	TokenSecret          string
 }
 
 func (c *Config) LoadConfig() (err error) {
@@ -37,6 +38,7 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.DebugLogger = "+"
 	ConfigCLS.TokenTimeoutMinutes = 600
 	ConfigCLS.AccrualCheckInterval = time.Second * 3
+	ConfigCLS.TokenSecret = "superpassword"
 
 	// load flags
 	cflags := new(Config)
@@ -46,6 +48,7 @@ func (c *Config) LoadConfig() (err error) {
 	flag.StringVar(&cflags.DebugLogger, "v", "+", "switch off debug logger (-)")
 	flag.UintVar(&cflags.TokenTimeoutMinutes, "t", 600, "tokens timeout minutes")
 	flag.DurationVar(&cflags.AccrualCheckInterval, "c", time.Second*3, "accrual check and update interval")
+	flag.StringVar(&cflags.TokenSecret, "s", "superpassword", "secret for tokens generation")
 	flag.Parse()
 
 	if cflags.DebugLogger == "+" {
@@ -98,6 +101,9 @@ func (c *Config) LoadConfig() (err error) {
 		ConfigCLS.AccrualCheckInterval = cflags.AccrualCheckInterval
 	} else if c.AccrualCheckInterval != 0 {
 		ConfigCLS.AccrualCheckInterval = c.AccrualCheckInterval
+	}
+	if cflags.TokenSecret != "" {
+		ConfigCLS.DebugLogger = cflags.TokenSecret
 	}
 
 	LoggerCLS.Info("effective config variables:")

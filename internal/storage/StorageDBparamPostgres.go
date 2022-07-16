@@ -40,9 +40,7 @@ func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 	err = sdbp.db.AutoMigrate(
 		&User{},
 		&Order{},
-		&OrderLog{},
-		&Withdraw{},
-		&WithdrawLog{})
+		&Withdraw{})
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
