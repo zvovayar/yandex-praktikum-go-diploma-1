@@ -44,28 +44,22 @@ func (bs *BusinessSession) RegisterNewUser(u storage.User) (status int, err erro
 	}
 }
 
-func (bs *BusinessSession) UserLogin(u storage.User) (err error) {
+func (bs *BusinessSession) UserLogin(u storage.User) (status int, err error) {
 
 	config.LoggerCLS.Debug("login user " + u.Login)
 
-	db, err := storage.GORMinterface.GetDB()
+	st, err := u.CheckPasswd(u.PasswdHash)
 
-	if err != nil {
-		return err
+	switch st {
+	case "DBerror":
+		return 500, err
+	case "Fail":
+		return 401, err
+	case "OK":
+		return 200, nil
+	default:
+		return 500, errors.New("unknown status returned by user check password")
 	}
-
-	var user storage.User
-	tx := db.First(&user, "login = ?", u.Login)
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	if user.PasswdHash != fmt.Sprintf("%x",
-		sha256.Sum256([]byte(u.PasswdHash))) {
-		return errors.New("password failed")
-	}
-
-	return nil
 }
 
 func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err error) {

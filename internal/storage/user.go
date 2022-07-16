@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"crypto/sha256"
+	"errors"
+	"fmt"
 	"strings"
 
 	config "github.com/zvovayar/yandex-praktikum-go-diploma-1/internal/config/cls"
@@ -81,4 +84,25 @@ func (u *User) CheckNewAndSave() (status string, err error) {
 
 	return "OKregistered", nil
 
+}
+
+func (u *User) CheckPasswd(passwd string) (status string, err error) {
+
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return "DBerror", err
+	}
+
+	var user User
+	tx := db.First(&user, "login = ?", u.Login)
+	if tx.Error != nil {
+		return "DBerror", tx.Error
+	}
+
+	if user.PasswdHash != fmt.Sprintf("%x",
+		sha256.Sum256([]byte(passwd))) {
+		return "Fail", errors.New("password failed")
+	}
+
+	return "OK", nil
 }
