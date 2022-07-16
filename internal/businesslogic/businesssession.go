@@ -154,7 +154,6 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Debug("get balance and make json for user: " + ulogin)
 
 	// check user exist?
-
 	var user storage.User
 	_, err = user.Get(ulogin)
 	if err != nil {
@@ -162,7 +161,6 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	}
 
 	// check balance
-
 	sumOrders, sumWithdraws, status, err := user.GetBalance()
 	if status != "OK" {
 		return []byte(""), err
@@ -234,7 +232,6 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	config.LoggerCLS.Debug("get withdrawals and make json for user: " + ulogin)
 
 	// check user exist?
-	db, err := storage.GORMinterface.GetDB()
 	if err != nil {
 		return []byte(""), err
 	}
@@ -247,13 +244,15 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 
 	// select all withdrawals for user
 	var withdrawals []storage.Withdraw
-	tx := db.Order("created_at").Find(&withdrawals, "user_id = ?", user.ID)
-	if tx.Error != nil {
-		return []byte(""), tx.Error
+	var withdraw storage.Withdraw
+	withdrawals, _, err = withdraw.GetByUser(user.ID)
+	if err != nil {
+		return []byte(""), err
 	}
 
 	config.LoggerCLS.Sugar().Debugf("withdrawals in CLS dtabase fo user:%v are:%v", ulogin, withdrawals)
 
+	// make JSON
 	type WithdrawForJSON struct {
 		Order       string    `json:"order"`
 		Sum         float32   `json:"sum"`
@@ -275,7 +274,6 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	config.LoggerCLS.Sugar().Debugf("withdrawals in CLS DB for user:%v are:%v",
 		ulogin, withdrawalsForJSON)
 
-	// make JSON
 	jsonb, err = json.Marshal(withdrawalsForJSON)
 	if err != nil {
 		return []byte(""), err

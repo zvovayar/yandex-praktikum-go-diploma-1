@@ -51,7 +51,7 @@ func (o *Order) GetByUser(uid int) (orders []Order, status string, err error) {
 	if err != nil {
 		return nil, "DBerror", err
 	}
-	tx := db.Find(&orders, "user_id = ?", uid)
+	tx := db.Order("created_at").Find(&orders, "user_id = ?", uid)
 	if tx.Error != nil {
 		return nil, "DBerror", tx.Error
 	}
