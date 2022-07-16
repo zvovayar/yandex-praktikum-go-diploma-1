@@ -232,10 +232,6 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	config.LoggerCLS.Debug("get withdrawals and make json for user: " + ulogin)
 
 	// check user exist?
-	if err != nil {
-		return []byte(""), err
-	}
-
 	var user storage.User
 	_, err = user.Get(ulogin)
 	if err != nil {
@@ -287,19 +283,20 @@ func (bs *BusinessSession) InfinityUpdateAllOrdersFromAccrual(dur time.Duration)
 
 	config.LoggerCLS.Debug("update all ordres statuses")
 	// select all orders with not final statuses
-	db, err := storage.GORMinterface.GetDB()
-	if err != nil {
-		return err
-	}
 
 	orders := make([]storage.Order, 0)
+	var order storage.Order
 
 	go func() {
 		for {
-			tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
-			if tx.Error != nil {
-				return
+			//
+			//
+			orders, _, err = order.GetQueueForAccrualUpdate()
+			if err != nil {
+				config.LoggerCLS.Sugar().Errorf("can't get orders queue from database error:%v",
+					err)
 			}
+			//
 			if len(orders) > 0 {
 				config.LoggerCLS.Debug(fmt.Sprintf("update all ordres statuses orders:%v", orders))
 			}
@@ -311,14 +308,16 @@ func (bs *BusinessSession) InfinityUpdateAllOrdersFromAccrual(dur time.Duration)
 
 				status, accrual, err = bs.AccrualClient.GetOrderStatus(orders[i].OrderNumber)
 				if err != nil {
-					return
+					config.LoggerCLS.Sugar().Errorf("can't get order:%v status from accrual:%v",
+						orders[i], err)
 				}
 
 				orders[i].Accrual = accrual
 				orders[i].Status = status
-				tx = db.Save(&orders[i])
-				if tx.Error != nil {
-					return
+				_, err = orders[i].Save()
+				if err != nil {
+					config.LoggerCLS.Sugar().Errorf("can't save order:%v to database:%v",
+						orders[i], err)
 				}
 
 			}

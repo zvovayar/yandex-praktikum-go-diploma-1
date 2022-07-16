@@ -58,3 +58,34 @@ func (o *Order) GetByUser(uid int) (orders []Order, status string, err error) {
 
 	return orders, "OK", nil
 }
+
+func (o *Order) GetQueueForAccrualUpdate() (orders []Order, status string, err error) {
+
+	// select order numbers for queue for accrual statuses update
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return nil, "DBerror", err
+	}
+	tx := db.Where("status not in ?", []string{"INVALID", "PROCESSED"}).Find(&orders)
+	if tx.Error != nil {
+		return nil, "DBerror", err
+	}
+
+	return orders, "OK", nil
+}
+
+func (o *Order) Save() (status string, err error) {
+
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return "DBerror", err
+	}
+
+	tx := db.Save(o)
+	if tx.Error != nil {
+		return "DBerror", tx.Error
+	}
+
+	return "OK", nil
+
+}
