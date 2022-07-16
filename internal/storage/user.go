@@ -72,6 +72,9 @@ func (u *User) CheckNewAndSave() (status string, err error) {
 		return "DBerror", err
 	}
 
+	u.PasswdHash = fmt.Sprintf("%x",
+		sha256.Sum256([]byte(u.PasswdHash)))
+
 	tx := db.Create(&u)
 	if tx.Error != nil {
 		if strings.Contains(tx.Error.Error(), "duplicate key value violates unique constraint") {
