@@ -59,39 +59,33 @@ func (bs *BusinessSession) UserLogin(u storage.User) (status int, err error) {
 	}
 }
 
-func (bs *BusinessSession) LoadOrder(oc string, ulogin string) (status int, err error) {
+func (bs *BusinessSession) LoadOrder(ordernum string, ulogin string) (status int, err error) {
 
-	config.LoggerCLS.Debug(fmt.Sprintf("user %v load order number %v", ulogin, oc))
+	config.LoggerCLS.Debug(fmt.Sprintf("user %v load order number %v", ulogin, ordernum))
 
 	// check Luhn algoritm
-	if !checkdigit.NewLuhn().Verify(oc) {
-		return 422, errors.New("order number is not valid by Luhn alogoritm: " + oc)
+	if !checkdigit.NewLuhn().Verify(ordernum) {
+		return 422, errors.New("order number is not valid by Luhn alogoritm: " + ordernum)
 	}
 
 	// check user exist?
-	db, err := storage.GORMinterface.GetDB()
-
+	var st string
+	var user storage.User
+	_, err = user.Get(ulogin)
 	if err != nil {
 		return 500, err
 	}
 
-	var user storage.User
-	tx := db.First(&user, "login = ?", ulogin)
-	if tx.Error != nil {
-		return 500, tx.Error
-	}
-
 	// register order in accrual
-	err = bs.AccrualClient.RegisterOrder(oc)
+	err = bs.AccrualClient.RegisterOrder(ordernum)
 	if err != nil {
 		return 500, err
 	}
 
 	// save order in database
 	var order storage.Order
-	order.OrderNumber = oc
+	order.OrderNumber = ordernum
 
-	var st string
 	st, err = order.CheckNewAndSave(user.ID)
 
 	switch st {
@@ -113,19 +107,19 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Debug("read orders and make json for user: " + ulogin)
 
 	// check user exist?
+	var user storage.User
+	_, err = user.Get(ulogin)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	// select order numbers for userid
 	db, err := storage.GORMinterface.GetDB()
 	if err != nil {
 		return []byte(""), err
 	}
-	var user storage.User
-	tx := db.First(&user, "login = ?", ulogin)
-	if tx.Error != nil {
-		return []byte(""), tx.Error
-	}
-
-	// select order numbers for userid
 	var orders []storage.Order
-	tx = db.Find(&orders, "user_id = ?", user.ID)
+	tx := db.Find(&orders, "user_id = ?", user.ID)
 	if tx.Error != nil {
 		return []byte(""), tx.Error
 	}
@@ -163,14 +157,11 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Debug("get balance and make json for user: " + ulogin)
 
 	// check user exist?
-	db, err := storage.GORMinterface.GetDB()
+
+	var user storage.User
+	_, err = user.Get(ulogin)
 	if err != nil {
 		return []byte(""), err
-	}
-	var user storage.User
-	tx := db.First(&user, "login = ?", ulogin)
-	if tx.Error != nil {
-		return []byte(""), tx.Error
 	}
 
 	// check balance
@@ -194,7 +185,6 @@ func (bs *BusinessSession) GetBalance(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Sugar().Debugf("balance in CLS dtabase for user:%v are:%v",
 		ulogin, b)
 
-	// make JSON
 	jsonb, err = json.Marshal(b)
 	if err != nil {
 		return []byte(""), err
@@ -214,15 +204,12 @@ func (bs *BusinessSession) Withdraw(w storage.Withdraw, ulogin string) (status i
 		return 422, errors.New("order number is not valid by Luhn alogoritm: " + w.OrderNumber)
 	}
 	// check user exist?
-	db, err := storage.GORMinterface.GetDB()
+	var user storage.User
+	_, err = user.Get(ulogin)
 	if err != nil {
 		return 500, err
 	}
-	var user storage.User
-	tx := db.First(&user, "login = ?", ulogin)
-	if tx.Error != nil {
-		return 500, tx.Error
-	}
+
 	w.UserID = user.ID
 
 	// check balance
@@ -254,15 +241,16 @@ func (bs *BusinessSession) GetWithdrawals(ulogin string) (jsonb []byte, err erro
 	if err != nil {
 		return []byte(""), err
 	}
+
 	var user storage.User
-	tx := db.First(&user, "login = ?", ulogin)
-	if tx.Error != nil {
-		return []byte(""), tx.Error
+	_, err = user.Get(ulogin)
+	if err != nil {
+		return []byte(""), err
 	}
 
 	// select all withdrawals for user
 	var withdrawals []storage.Withdraw
-	tx = db.Order("created_at").Find(&withdrawals, "user_id = ?", user.ID)
+	tx := db.Order("created_at").Find(&withdrawals, "user_id = ?", user.ID)
 	if tx.Error != nil {
 		return []byte(""), tx.Error
 	}

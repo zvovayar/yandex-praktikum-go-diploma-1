@@ -109,3 +109,18 @@ func (u *User) CheckPasswd(passwd string) (status string, err error) {
 
 	return "OK", nil
 }
+
+func (u *User) Get(login string) (status string, err error) {
+
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return "DBerror", err
+	}
+
+	tx := db.First(&u, "login = ?", login)
+	if tx.Error != nil {
+		return "DBerror", tx.Error
+	}
+
+	return "OK", nil
+}
