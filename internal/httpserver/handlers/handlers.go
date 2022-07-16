@@ -58,7 +58,7 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	// make token
 	claims := make(map[string]interface{})
 	claims["user_id"] = newuser.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimoutMinutes))
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimeoutMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("claims=%v", claims)
 
@@ -105,7 +105,7 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 	// make token
 	claims := make(map[string]interface{})
 	claims["user_id"] = user.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimoutMinutes))
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimeoutMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("user logged in claims=%v", claims)
 

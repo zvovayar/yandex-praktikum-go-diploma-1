@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"time"
 
 	"github.com/caarlos0/env"
 
@@ -13,11 +14,12 @@ var LoggerCLS *zap.Logger
 var ConfigCLS Config
 
 type Config struct {
-	RunAddress           string `env:"RUN_ADDRESS"`
-	DataBaseURI          string `env:"DATABASE_URI"`
-	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
-	DebugLogger          string
-	TokenTimoutMinutes   uint
+	RunAddress           string        `env:"RUN_ADDRESS"`
+	DataBaseURI          string        `env:"DATABASE_URI"`
+	AccrualSystemAddress string        `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	DebugLogger          string        `env:"DEBUG_LOGGER_SWITCH"`
+	TokenTimeoutMinutes  uint          `env:"TOKEN_TIMEOUTS_MINUTES"`
+	AccrualCheckInterval time.Duration `env:"ACCRUAL_CHECK_INTERVAL"`
 }
 
 func (c *Config) LoadConfig() (err error) {
@@ -33,7 +35,8 @@ func (c *Config) LoadConfig() (err error) {
 	ConfigCLS.DataBaseURI = ""
 	ConfigCLS.AccrualSystemAddress = "localhost:8080"
 	ConfigCLS.DebugLogger = "+"
-	ConfigCLS.TokenTimoutMinutes = 600
+	ConfigCLS.TokenTimeoutMinutes = 600
+	ConfigCLS.AccrualCheckInterval = time.Second * 3
 
 	// load flags
 	cflags := new(Config)
@@ -41,13 +44,15 @@ func (c *Config) LoadConfig() (err error) {
 	flag.StringVar(&cflags.DataBaseURI, "d", "", "database URI")
 	flag.StringVar(&cflags.AccrualSystemAddress, "r", "", "accrual system address")
 	flag.StringVar(&cflags.DebugLogger, "v", "+", "switch off debug logger (-)")
+	flag.UintVar(&cflags.TokenTimeoutMinutes, "t", 600, "tokens timeout minutes")
+	flag.DurationVar(&cflags.AccrualCheckInterval, "c", time.Second*3, "accrual check and update interval")
 	flag.Parse()
 
 	if cflags.DebugLogger == "+" {
 		LoggerCLS.Sync()
 		LoggerCLS, err = zap.NewDevelopment()
 		if err != nil {
-			LoggerCLS.Panic("can't create zap developmetn logger")
+			LoggerCLS.Panic("can't create zap development logger")
 		}
 	}
 
@@ -83,6 +88,16 @@ func (c *Config) LoadConfig() (err error) {
 		ConfigCLS.DebugLogger = cflags.DebugLogger
 	} else if c.DebugLogger != "" {
 		ConfigCLS.DebugLogger = c.DebugLogger
+	}
+	if cflags.TokenTimeoutMinutes != 0 {
+		ConfigCLS.TokenTimeoutMinutes = cflags.TokenTimeoutMinutes
+	} else if c.TokenTimeoutMinutes != 0 {
+		ConfigCLS.TokenTimeoutMinutes = c.TokenTimeoutMinutes
+	}
+	if cflags.AccrualCheckInterval != 0 {
+		ConfigCLS.AccrualCheckInterval = cflags.AccrualCheckInterval
+	} else if c.AccrualCheckInterval != 0 {
+		ConfigCLS.AccrualCheckInterval = c.AccrualCheckInterval
 	}
 
 	LoggerCLS.Info("effective config variables:")
