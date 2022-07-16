@@ -43,3 +43,18 @@ func (o *Order) CheckNewAndSave(uid uint) (status string, err error) {
 	}
 	return "OKnew", nil
 }
+
+func (o *Order) GetByUser(uid int) (orders []Order, status string, err error) {
+
+	// select order numbers for userid
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return nil, "DBerror", err
+	}
+	tx := db.Find(&orders, "user_id = ?", uid)
+	if tx.Error != nil {
+		return nil, "DBerror", tx.Error
+	}
+
+	return orders, "OK", nil
+}

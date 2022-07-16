@@ -114,18 +114,16 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	}
 
 	// select order numbers for userid
-	db, err := storage.GORMinterface.GetDB()
+	var orders []storage.Order
+	var order storage.Order
+	orders, _, err = order.GetByUser(int(user.ID))
 	if err != nil {
 		return []byte(""), err
-	}
-	var orders []storage.Order
-	tx := db.Find(&orders, "user_id = ?", user.ID)
-	if tx.Error != nil {
-		return []byte(""), tx.Error
 	}
 
 	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase fo user:%v are:%v", ulogin, orders)
 
+	// make JSON
 	var ordersForJSON []OrderForJSON
 	ordersForJSON = make([]OrderForJSON, 0)
 
@@ -142,7 +140,6 @@ func (bs *BusinessSession) GetOrders(ulogin string) (jsonb []byte, err error) {
 	config.LoggerCLS.Sugar().Debugf("orders in CLS dtabase with data from accrual for user:%v are:%v",
 		ulogin, ordersForJSON)
 
-	// make JSON
 	jsonb, err = json.Marshal(ordersForJSON)
 	if err != nil {
 		return []byte(""), err
