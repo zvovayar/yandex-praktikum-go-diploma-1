@@ -20,12 +20,26 @@ var GORMinterface StorageDBparamPostgres
 //
 // realize interface StorageDBparam
 //
+func (sdbp *StorageDBparamPostgres) SetURIDB(uri string) {
+	sdbp.uridb = uri
+}
+
 func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 	if sdbp.db != nil {
 		return sdbp.db, nil
 	}
 
-	sdbp.uridb = config.ConfigCLS.DataBaseURI
+	if config.ConfigCLS.DataBaseURI == "" {
+		sdbp.uridb = "postgres://postgres:qweasd@localhost:5432/yandexdiploma1_test?sslmode=disable"
+	} else {
+		sdbp.uridb = config.ConfigCLS.DataBaseURI
+	}
+
+	config.LoggerCLS.Info("init DB connection:" + config.ConfigCLS.DataBaseURI)
+
+	//
+	// TODO: add test database URI
+	//
 
 	sdbp.db, err = gorm.Open(postgres.Open(sdbp.uridb), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
