@@ -81,3 +81,18 @@ func (w *Withdraw) CheckNewAndSave(uid uint) (st string, err error) {
 
 	return "OKRegistered", nil
 }
+
+func (w *Withdraw) GetByUser(uid uint) (wls []Withdraw, st string, err error) {
+
+	db, err := GORMinterface.GetDB()
+	if err != nil {
+		return nil, "DBerror", err
+	}
+
+	tx := db.Order("created_at").Find(&wls, "user_id = ?", uid)
+	if tx.Error != nil {
+		return nil, "DBerror", tx.Error
+	}
+
+	return wls, "OK", nil
+}
