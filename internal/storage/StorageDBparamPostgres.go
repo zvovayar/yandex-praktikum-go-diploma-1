@@ -20,12 +20,18 @@ var GORMinterface StorageDBparamPostgres
 //
 // realize interface StorageDBparam
 //
+func (sdbp *StorageDBparamPostgres) SetURIDB(uri string) {
+	sdbp.uridb = uri
+}
+
 func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 	if sdbp.db != nil {
 		return sdbp.db, nil
 	}
 
 	sdbp.uridb = config.ConfigCLS.DataBaseURI
+
+	config.LoggerCLS.Info("init DB connection:" + config.ConfigCLS.DataBaseURI)
 
 	sdbp.db, err = gorm.Open(postgres.Open(sdbp.uridb), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -40,9 +46,7 @@ func (sdbp *StorageDBparamPostgres) GetDB() (dbx *gorm.DB, err error) {
 	err = sdbp.db.AutoMigrate(
 		&User{},
 		&Order{},
-		&OrderLog{},
-		&Withdraw{},
-		&WithdrawLog{})
+		&Withdraw{})
 
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())

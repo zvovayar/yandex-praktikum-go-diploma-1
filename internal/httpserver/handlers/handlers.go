@@ -45,28 +45,28 @@ func PostUserRegister(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("newuser=%v", newuser)
 
 	// call business logic
-	err := BusinessSession.RegisterNewUser(newuser)
+	status, err := BusinessSession.RegisterNewUser(newuser)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(status)
 		_, _ = w.Write([]byte("<h1>Fail create new user </h1>" + newuser.Login))
 		return
 	}
 
 	// return answer
 
+	// make token
 	claims := make(map[string]interface{})
 	claims["user_id"] = newuser.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimoutMinutes))
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimeoutMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("claims=%v", claims)
 
 	_, tokenString, _ := TokenAuth.Encode(claims)
 
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
-
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = w.Write([]byte("user registered: " + newuser.Login))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
@@ -92,28 +92,28 @@ func PostUserLogin(w http.ResponseWriter, r *http.Request) {
 	config.LoggerCLS.Sugar().Debugf("user=%v", user)
 
 	// call business logic
-	err := BusinessSession.UserLogin(user)
+	status, err := BusinessSession.UserLogin(user)
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(status)
 		_, _ = w.Write([]byte("<h1>Fail login user </h1>" + user.Login))
 		return
 	}
 
 	// return answer
+
+	// make token
 	claims := make(map[string]interface{})
 	claims["user_id"] = user.Login
-	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimoutMinutes))
+	claims["exp"] = jwtauth.ExpireIn(time.Minute * time.Duration(config.ConfigCLS.TokenTimeoutMinutes))
 
 	config.LoggerCLS.Sugar().Debugf("user logged in claims=%v", claims)
 
 	_, tokenString, _ := TokenAuth.Encode(claims)
 
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
-
 	w.Header().Set("Content-Type", "text/plain")
-
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = w.Write([]byte("<h1>User logged in </h1>" + user.Login))
 	if err != nil {
 		config.LoggerCLS.Info(err.Error())

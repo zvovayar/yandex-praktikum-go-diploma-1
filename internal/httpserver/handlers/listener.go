@@ -15,6 +15,7 @@ var BusinessSession businesslogic.BusinessSession
 
 func GoListenRutine(bs businesslogic.BusinessSession) {
 
+	TokenAuth = jwtauth.New("HS256", []byte(config.ConfigCLS.TokenSecret), nil)
 	BusinessSession = bs
 	// маршрутизация запросов обработчику
 	r := chi.NewRouter()
@@ -80,9 +81,4 @@ func ListenRutine(r *chi.Mux) {
 	if err := http.ListenAndServe(config.ConfigCLS.RunAddress, r); err != nil {
 		config.LoggerCLS.Fatal(err.Error())
 	}
-}
-
-func init() {
-	TokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
-
 }
